@@ -13,7 +13,12 @@ The Wiki page of this repository provides a documentation for the GradValley.jl 
 Because no stable release was published yet, this package is not accessible through Julia's package manager yet. For use just download the repository and copy the source files in the src directory in your desired folder and use the ```include``` function to make the module accessible in your file. See First Steps for further information.
 
 # Contributing
-Because there exists no releases yet and the repository is under construction at the moment, there exists no contributing guide yet.
+Everyone is invited to contribute. To do so:
+
+- Fork the current-most state of the master branch
+- Implement features or changes
+- Add your name to AUTHORS.md
+- Create a pull-request to the upstream repository
 
 # License
 The GradValley.jl software package is currently published under the MIT "Expat" license. See LICENSE for further information.
