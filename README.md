@@ -10,7 +10,7 @@ GradValley.jl's backend is written "human-friendly". So if you're looking into h
 To get started, see Installation and First steps. See the [models](https://github.com/jonas208/GradValley.jl/tree/main/models) folder or the Tutorials page in the Wiki for examples.
 
 The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
-Further [Tutorials](https://jonas208.github.io/GradValley.jl/) can be also found there.
+Further [tutorials](https://jonas208.github.io/GradValley.jl/) can be also found there.
 
 # Installation
 Use Julias's package manager in the REPL:
@@ -27,7 +27,7 @@ Pkg.add(url="https://github.com/jonas208/GradValley.jl")
 
 # Documentation and Tutorials
 The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
-Further [Tutorials](https://jonas208.github.io/GradValley.jl/) can be also found there.
+Further [tutorials](https://jonas208.github.io/GradValley.jl/) can be also found there.
 
 # Contributing
 Everyone is invited to contribute. To do so:
