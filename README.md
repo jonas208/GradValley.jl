@@ -10,7 +10,15 @@ GradValley.jl is a new lightweight module for deep learning in 100% Julia. It of
 The Wiki page of this repository provides a documentation for the GradValley.jl software package. Further Tutorials can be also found there.
 
 # Installation
-Because no stable release was published yet, this package is not accessible through Julia's package manager yet. For use just download the repository and copy the source files in the src directory in your desired folder and use the ```include``` function to make the module accessible in your file. See First Steps for further information.
+Use Julias's package manager in the REPL:
+```
+pkg> add https://github.com/jonas208/GradValley.jl
+```
+Or install directly in a julia script:
+```julia
+import Pkg
+Pkg.add(url="https://github.com/jonas208/GradValley.jl")
+```
 
 # Contributing
 Everyone is invited to contribute. To do so:
