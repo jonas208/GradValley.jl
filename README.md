@@ -27,9 +27,9 @@ Pkg.add(url="https://github.com/jonas208/GradValley.jl")
 
 # First Steps
 
-# Documentation and Tutorials
+# Documentation, Tutorials and Examples
 The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
-Further [tutorials](https://jonas208.github.io/GradValley.jl/) can be also found there.
+Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/) can be also found there.
 
 # Contributing
 Everyone is invited to contribute. To do so:
