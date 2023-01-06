@@ -47,7 +47,7 @@ model = SequentialContainer([feature_extractor, flatten, classifier])
                                   
 # feeding the network with some random data
 input = rand(32, 1, 28, 28) # a batch of 32 images with one channel and a size of 28*28 pixels
-prediction = forward(model, input) # a forward function can work with layers or SequentialContainers
+prediction = forward(model, input) # the forward function can work with a layer or a SequentialContainer
 
 # choosing an optimizer for training
 learning_rate = 0.05
