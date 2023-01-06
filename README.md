@@ -59,7 +59,7 @@ target = rand(size(prediction)...)
 zero_gradients(model)
 loss, derivate_loss = mse_loss(prediction, target) # mean squared error
 backward(model, derivative_loss) # computing gradients
-step!(optimizer) # making a optimization step with the optimizer
+step!(optimizer) # making a optimization step with the calculated gradients and the optimizer
 ```
 
 # Documentation, Tutorials and Examples
