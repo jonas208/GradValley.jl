@@ -16,4 +16,4 @@ Because no stable release was published yet, this package is not accessible thro
 Because there exists no releases yet and the repository is under construction at the moment, there exists no contributing guide yet.
 
 # License
-The GradValley.jl software package is currently published under the MIT license. See LICENSE for further information.
+The GradValley.jl software package is currently published under the MIT "Expat" license. See LICENSE for further information.
