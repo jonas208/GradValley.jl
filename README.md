@@ -26,6 +26,41 @@ Pkg.add(url="https://github.com/jonas208/GradValley.jl")
 ```
 
 # First Steps
+This example shows the basic workflow on model building and how to train them using loss functions and optimizers:
+```julia
+using GradValley
+using GradValley.Layers # The "Layers" module provides all the building blocks for creating a model.
+using GradValley.Optimization # The "Optimization" module provides different loss functions and optimizers.
+
+# Definition of a LeNet-like model consisting of a feature extractor and a classifier
+feature_extractor = SequentialContainer([Conv(1, 6, (5, 5), activation_function="relu"),
+                                         AvgPool((2, 2)),
+                                         Conv(6, 16, (5, 5), activation_function="relu"),
+                                         AvgPool((2, 2))])
+flatten = Reshape((256, ))
+classifier = SequentialContainer([Fc(256, 120, activation_function="relu"),
+                                  Fc(120, 84, activation_function="relu"),
+                                  Fc(84, 10),
+                                  Softmax(dim=2)])
+# The final model consists of three different sub-modules, which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
+model = SequentialContainer([feature_extractor, flatten, classifier])
+                                  
+# feeding the network with some random data
+input = rand(32, 1, 28, 28) # a batch of 32 images with one channel and a size of 28*28 pixels
+prediction = forward(model, input) # a forward function can work with layers or SequentialContainers
+
+# choosing an optimizer for training
+learning_rate = 0.05
+optimizer = MSGD(model, learning_rate, momentum=0.5) # momentum stochastic gradient decent with a momentum of 0.5
+
+# generating some random data for a training step
+target = rand(size(prediction)...)
+# backpropagation
+zero_gradients(model)
+loss, derivate_loss = mse_loss(prediction, target) # mean squard error
+backward(model, derivative_loss) # computing gradients
+step!(optimizer) # making a optimization step with the optimizer
+```
 
 # Documentation, Tutorials and Examples
 - The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
