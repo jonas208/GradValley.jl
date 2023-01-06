@@ -1,8 +1,9 @@
-module gv_optimization
+module Optimization
 
-using ..gv_layers: SequentialContainer, Conv, DepthwiseConv, BatchNorm2d, Fc
-using ..gv_functional
-# import ..gv_functional
+using ..Layers: SequentialContainer, Conv, DepthwiseConv, BatchNorm2d, Fc
+using ..Functional
+# make Functional accessible via gv functional
+gv_functional = Functional
 
 # export all optimizers and their step! methods
 export SGD, MSGD, Nesterov, step!
@@ -308,69 +309,4 @@ function mse_loss(prediction, target; reduction_method::Union{String, Nothing}="
     end
 end
 
-function cross_entropy_loss(prediction, target; weight::Union{Array, Nothing}=nothing, dim::Integer=1, epsilon::AbstractFloat=eps(Float64), reduction_method::Union{String, Nothing}="mean", return_derivative::Bool=true) # =eps(prediction)
-    prediction_shape = size(prediction)
-    target_shape = size(target) 
-    if prediction_shape != target_shape
-        error("GradValley: mse_loss: size/shape of prediction must be equal to the size/shape of target")
-    end
-    if isnothing(weight)
-        weight = ones(prediction_shape)
-    end
-    losses = -gv_functional.dim_sum(weight .* target .* log.(prediction .+ epsilon), dim=dim)
-    if isnothing(reduction_method)
-        loss = losses
-        loss_derivative = -((weight .* target) ./ prediction)
-    elseif reduction_method == "mean"
-        loss = mean(losses)
-        loss_derivative = (1 / length(prediction)) .* -((weight .* target) ./ prediction)
-    elseif reduction_method == "sum"
-        loss = sum(losses)
-        loss_derivative = -((weight .* target) ./ prediction)
-    else
-        error("""GradValley: mse_loss: given reduction_method is invalid
-            reduction_method must be either nothing, "mean" or "sum" """)
-    end
-    if return_derivative
-        return loss, loss_derivative
-    else
-        return loss
-    end
-end
-
-function cross_entropy_softmax_included_loss(prediction, target; weight::Union{Array, Nothing}=nothing, dim::Integer=1, epsilon::AbstractFloat=eps(Float64), reduction_method::Union{String, Nothing}="mean", return_derivative::Bool=true) # =eps(prediction)
-    prediction_shape = size(prediction)
-    target_shape = size(target) 
-    if prediction_shape != target_shape
-        error("GradValley: mse_loss: size/shape of prediction must be equal to the size/shape of target")
-    end
-    if isnothing(weight)
-        weight = ones(prediction_shape)
-    end
-    softmax_output = gv_functional.softmax(prediction, dim=dim)
-    # losses = -gv_functional.dim_sum(weight .* target .* log.(gv_functional.softmax(prediction, dim=dim) .+ epsilon), dim=dim)
-    losses = -gv_functional.dim_sum(weight .* target .* log.(softmax_output .+ epsilon), dim=dim)
-    if isnothing(reduction_method)
-        loss = losses
-        # loss_derivative = prediction - target # -((weight .* target) ./ prediction)
-        loss_derivative = softmax_output - target
-    elseif reduction_method == "mean"
-        loss = mean(losses)
-        # loss_derivative = (1 / length(prediction)) .* (prediction - target) # -((weight .* target) ./ prediction)
-        # loss_derivative = (1 / length(prediction)) .* (softmax_output - target)
-        loss_derivative = (1 / length(losses)) .* (softmax_output - target)
-    elseif reduction_method == "sum"
-        loss = sum(losses)
-        loss_derivative = softmax_output - target
-    else
-        error("""GradValley: mse_loss: given reduction_method is invalid
-            reduction_method must be either nothing, "mean" or "sum" """)
-    end
-    if return_derivative
-        return loss, loss_derivative
-    else
-        return loss
-    end
-end
-
-end # end of module "gv_optimization"
+end # end of module "Optimization"

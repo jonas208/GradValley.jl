@@ -1,12 +1,10 @@
 module GradValley
-
 using Random
 
+# including all necessary files
 include("gv_functional.jl")
 include("gv_layers.jl")
 include("gv_optimization.jl")
-
-# export gv_functional, gv_layers, gv_optimization
 
 # export utilities
 export DataLoader, reshuffle!
@@ -85,7 +83,6 @@ mutable struct DataLoader
     indices_batches::Vector{Vector{<: Integer}}
     # custom constructor
     function DataLoader(get_function::Function, dataset_size::Integer; batch_size::Integer=1, shuffle::Bool=false, drop_last::Bool=false)
-        # println(typeof(batch_size))
         # create indices for all batches
         indices_batches = load_indices_batches(dataset_size, batch_size=batch_size, shuffle=shuffle, drop_last=drop_last)
         num_batches = length(indices_batches)
@@ -119,12 +116,6 @@ Base.lastindex(DL::DataLoader) = DL.num_batches
 function Base.getindex(DL::DataLoader, index_range::UnitRange{<: Integer})
     1 <= index_range[1] <= DL.num_batches || throw(BoundsError(DL, index))
     1 <= index_range[end] <= DL.num_batches || throw(BoundsError(DL, index))
-    #=
-    batches = Vector{Tuple}(undef, length(index_range))
-    for (i, index) in enumerate(index_range)
-        batches[i] = load_data_batch(DL.get_function, DL.indices_batches[index])
-    end
-    =#
     batches = [load_data_batch(DL.get_function, DL.indices_batches[index]) for index in index_range]
 
     return batches

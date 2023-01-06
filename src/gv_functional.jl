@@ -1,4 +1,4 @@
-module gv_functional
+module Functional
 using LoopVectorization
 using LinearAlgebra
 
@@ -1629,4 +1629,4 @@ function bias_uniform_init(bias_shape::Tuple, weight_shape::Tuple, gain::Real; f
     return bias
 end
 
-end # end of module "gv_functional"
+end # end of module "Functional"

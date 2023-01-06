@@ -1,7 +1,7 @@
-module gv_layers
-
-using ..gv_functional
-# import ..gv_functional
+module Layers
+using ..Functional
+# make Functional accessible via gv_functional
+gv_functional = Functional
 
 # export all layers and nearly all functions
 export Conv, DepthwiseConv, Fc, BatchNorm2d, MaxPool, AdaptiveMaxPool, AvgPool, AdaptiveAvgPool, Reshape, SequentialContainer, Softmax
@@ -1279,4 +1279,4 @@ function summarize_model(sc::SequentialContainer)
     return summary, num_params
 end
 
-end # end of module "gv_layers"
+end # end of module "Layers"
