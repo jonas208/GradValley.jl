@@ -26,7 +26,7 @@ Pkg.add(url="https://github.com/jonas208/GradValley.jl")
 ```
 
 # Getting Started
-This example shows the basic workflow on model building and how to use loss functions and optimizers to train the model
+This example shows the basic workflow on model building and how to use loss functions and optimizers to train the model:
 ```julia
 using GradValley
 using GradValley.Layers # The "Layers" module provides all the building blocks for creating a model.
