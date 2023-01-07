@@ -70,7 +70,7 @@ step!(optimizer) # making a optimization step with the calculated gradients and 
 # Contributing
 Everyone is invited to contribute. To do so:
 
-- Fork the current-most state of the master branch
+- Fork the current-most state of the main branch
 - Implement features or changes
 - Add your name to AUTHORS.md
 - Create a pull-request to the upstream repository
