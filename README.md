@@ -72,6 +72,9 @@ step!(optimizer) # making a optimization step with the calculated gradients and 
 - Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
 - Information about [pre-trained models](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/) can be found there too.
 
+# Questions in Discussions
+If you have any questions about this software package, please let me know in the [discussion](https://github.com/jonas208/GradValley.jl/discussions) section of this repository.
+
 # Contributing
 Everyone is invited to contribute. To do so:
 
