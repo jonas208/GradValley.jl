@@ -1,3 +1,21 @@
+#=
+This tutorial was written by Jonas S. and is part of the GradValley.jl repository.
+
+About:
+In this tutorial, we will learn the basics of GradValley.jl while building a model for handwritten digit recognition, reaching approximately 99% accuracy on the MNIST-dataset.
+The more detailed version of this tutorial can be found [here](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/#A-LeNet-like-model-for-handwritten-digit-recognition).
+
+Important Note:
+It is heavily recommended to run this file, and any other files using GradValley, with multiple threads.
+Using multiple threads can make training much faster.
+To do this, use the ```-t``` option when running a julia script in terminal/PowerShell/command line/etc.
+If your CPU has 24 threads, for example, then run:
+```
+julia -t 24 ./MNIST_with_LeNet5.jl
+```
+The specified number of threads should match the number of threads your CPU provides.
+=#
+
 using GradValley # the master module of GradValley.jl
 using GradValley.Layers # The "Layers" module provides all the building blocks for creating a model. 
 using GradValley.Optimization # The "Optimization" module provides different loss functions and optimizers.
@@ -122,7 +140,7 @@ function train()
     end
 end
 
-# when this file is run as the main script using julia MNIST_with_LeNet5.jl, 
+# when this file is run as the main script, 
 # then train() is run and the final model will be saved using a package called BSON.jl
 if abspath(PROGRAM_FILE) == @__FILE__
     train()
