@@ -8,6 +8,9 @@ GradValley.jl is a new lightweight module for deep learning written in 100% Juli
 GradValley.jl's "backend" is written "human-friendly". So if you're looking into how exactly such deep learning algorithms work, looking at the [source code](https://github.com/jonas208/GradValley.jl/tree/main/src) could also be a good learning resource. See [Learning](@ref) for further information.
 To get started, see [Installation](@ref) and [Getting Started](@ref). After that, you could look at the [Tutorials and Examples](@ref) section.
 
+!!! note
+    This software package and its documentation are in an early stage of development and are therefore still a beta version.
+
 ## About
 A while ago I started looking into machine learning. The topic fascinated me from the beginning, so I wanted to gain a deeper understanding of the way such models work. In my opinion, the best way to do this is to write your own small software package for machine learning and not just blindly use one of the big, established frameworks such as PyTorch or TensorFlow. The Julia programming language was my choice because of its popularity in academia and its very good performance compared to pure Python, which is after all very popular in the world of artificial intelligence.
 The product of this work is this module called GradValley.jl with which various current neural networks (e.g. CNNs) can be implemented easily and intuitively.
@@ -20,3 +23,17 @@ When optimizing the weights of a machine learning model, an attempt is always ma
 
 ### Current Limitations
 Due to the relatively early development status of this software, no GPU support is currently offered. GradValley.jl doesn't provide a real automatic differentiation (AD) engine like [PyTorch](https://pytorch.org/) does, for example. However, in the case of this software package, it is not really necessary to have real AD. Model building is mostly done with the [`SequentialContainer`](@ref), this clearly defines the forward pass and thus the backward pass is also known to the software.
+
+## Questions in Discussions
+If you have any questions about this software package, please let me know in the [discussion](https://github.com/jonas208/GradValley.jl/discussions) section of the GitHub [repository](https://github.com/jonas208/GradValley.jl).
+
+## Contributing
+Everyone is invited to contribute. To do so:
+
+- Fork the current-most state of the main branch
+- Implement features or changes
+- Add your name to AUTHORS.md
+- Create a pull-request to the upstream repository
+
+## License
+The GradValley.jl software package is currently published under the MIT "Expat" license. See [LICENSE](https://github.com/jonas208/GradValley.jl/blob/main/LICENSE) in the GitHub [repository](https://github.com/jonas208/GradValley.jl) for further information.
