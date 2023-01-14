@@ -1,16 +1,16 @@
 # GradValley.jl
-A new lightweight package for deep learning in Julia
+A new lightweight package for deep learning with Julia
 
 ![My Image](logo.png)
 
 ## ATTENTION, IMPORTANT INFORMATION: THIS REPOSITORY IS CURRENTLY UNDER CONSTRUCTION, IT IS NOT READY FOR USE YET!!
 
 GradValley.jl is a new lightweight module for deep learning in 100% Julia. It offers a high level interface for model building and training. It is completely independent from other machine learning packages like [Flux](https://github.com/FluxML/Flux.jl), [Knet](https://github.com/denizyuret/Knet.jl), [NNlib](https://github.com/FluxML/NNlib.jl) or [NNPACK](https://github.com/Maratyszcza/NNPACK). It is based on Julia's standard array type and needs no additional tensor type. <br>
-GradValley.jl's backend is written "human-friendly". So if you're looking into how exactly such deep learning algorithms work, looking at the [source code](https://github.com/jonas208/GradValley.jl/tree/main/src) could also be a good learning resource. See [this page in documentation](https://jonas208.github.io/GradValley.jl/) for further information. <br>
+GradValley.jl's backend is written "human-friendly". So if you're looking into how exactly such deep learning algorithms work, looking at the [source code](https://github.com/jonas208/GradValley.jl/tree/main/src) could also be a good learning resource. See [this page in documentation](https://jonas208.github.io/GradValley.jl/learning/) for further information. <br>
 To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blob/main/README.md#installation) and [Getting Started](https://github.com/jonas208/GradValley.jl/blob/main/README.md#getting-started).
 
 The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
-Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/) can be also found there.
+Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
 
 #### Note: This software package is in an early stage of development and is therefore still a beta version.
 
@@ -33,16 +33,21 @@ using GradValley.Layers # The "Layers" module provides all the building blocks f
 using GradValley.Optimization # The "Optimization" module provides different loss functions and optimizers.
 
 # Definition of a LeNet-like model consisting of a feature extractor and a classifier
-feature_extractor = SequentialContainer([Conv(1, 6, (5, 5), activation_function="relu"),
+feature_extractor = SequentialContainer([ # a convolution layer with 1 in channel, 6 out channels, a 5*5 kernel and a relu activation
+                                         Conv(1, 6, (5, 5), activation_function="relu"),
+                                         # an average pooling layer with a 2*2 filter (when not specified, stride is automatically set to kernel size)
                                          AvgPool((2, 2)),
                                          Conv(6, 16, (5, 5), activation_function="relu"),
                                          AvgPool((2, 2))])
 flatten = Reshape((256, ))
-classifier = SequentialContainer([Fc(256, 120, activation_function="relu"),
+classifier = SequentialContainer([ # a fully connected layer (also known as dense or linear) with 256 in features, 120 out features and a relu activation
+                                  Fc(256, 120, activation_function="relu"),
                                   Fc(120, 84, activation_function="relu"),
                                   Fc(84, 10),
+                                  # a softmax activation layer, the softmax will be calculated along the second dimension (the features dimension)
                                   Softmax(dim=2)])
-# The final model consists of three different sub-modules, which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
+# The final model consists of three different submodules, 
+# which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
 model = SequentialContainer([feature_extractor, flatten, classifier])
                                   
 # feeding the network with some random data
@@ -64,8 +69,8 @@ step!(optimizer) # making a optimization step with the calculated gradients and 
 
 # Documentation, Tutorials and Examples
 - The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
-- Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/) can be also found there.
-- Information about [pre-trained models](https://jonas208.github.io/GradValley.jl/) can be found there too.
+- Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
+- Information about [pre-trained models](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/) can be found there too.
 
 # Contributing
 Everyone is invited to contribute. To do so:
