@@ -148,3 +148,29 @@ if abspath(PROGRAM_FILE) == @__FILE__
     @save file_name model
     println("Saved trained model as $file_name")
 end
+
+#= Use this code in an extra file:
+# load the model and make some individual predictions
+
+using GradValley
+using GradValley.Layers 
+using GradValley.Optimization
+using MLDatasets
+using BSON: @load
+
+# load the pre-trained model
+@load "MNIST_with_LeNet5_model.bson" model
+
+# make some individual predictions
+mnist_test = MNIST(:test)
+for i in 1:5
+    random_index = rand(1:length(mnist_test))
+    image, label = mnist_test[random_index]
+    # remember to add batch and channel dimensions and to rescale the image as was done during training and testing
+    image_batch = convert(Array{Float64, 4}, reshape(image, 1, 1, 28, 28)) .* 255
+    prediction = forward(model, image_batch)
+    predicted_label = argmax(prediction[1, :]) - 1
+    println("Predicted label: $predicted_label, Correct Label: $label")
+end
+
+=#
