@@ -3,7 +3,7 @@ This tutorial was written by Jonas S. and is part of the GradValley.jl repositor
 
 About:
 In this tutorial, we will learn the basics of GradValley.jl while building a model for handwritten digit recognition, reaching approximately 99% accuracy on the MNIST-dataset.
-The more detailed version of this tutorial can be found on https://jonas208.github.io/GradValley.jl/tutorials_and_examples/#A-LeNet-like-model-for-handwritten-digit-recognition.
+The more detailed version of this tutorial can be found in this section of the documentation: https://jonas208.github.io/GradValley.jl/tutorials_and_examples/#A-LeNet-like-model-for-handwritten-digit-recognition
 
 Important Note:
 It is heavily recommended to run this file, and any other files using GradValley, with multiple threads.
