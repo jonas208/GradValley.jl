@@ -9,16 +9,21 @@ using GradValley.Layers # The "Layers" module provides all the building blocks f
 using GradValley.Optimization # The "Optimization" module provides different loss functions and optimizers.
 
 # Definition of a LeNet-like model consisting of a feature extractor and a classifier
-feature_extractor = SequentialContainer([Conv(1, 6, (5, 5), activation_function="relu"),
+feature_extractor = SequentialContainer([ # a convolution layer with 1 in channel, 6 out channels, a 5*5 kernel and a relu activation
+                                         Conv(1, 6, (5, 5), activation_function="relu"),
+                                         # an average pooling layer with a 2*2 filter (when not specified, stride is automatically set to kernel size)
                                          AvgPool((2, 2)),
                                          Conv(6, 16, (5, 5), activation_function="relu"),
                                          AvgPool((2, 2))])
 flatten = Reshape((256, ))
-classifier = SequentialContainer([Fc(256, 120, activation_function="relu"),
+classifier = SequentialContainer([ # a fully connected layer (also known as dense or linear) with 256 in features, 120 out features and a relu activation
+                                  Fc(256, 120, activation_function="relu"),
                                   Fc(120, 84, activation_function="relu"),
                                   Fc(84, 10),
+                                  # a softmax activation layer, the softmax will be calculated along the second dimension (the features dimension)
                                   Softmax(dim=2)])
-# The final model consists of three different sub-modules, which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
+# The final model consists of three different submodules, 
+# which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
 model = SequentialContainer([feature_extractor, flatten, classifier])
                                   
 # feeding the network with some random data
@@ -41,7 +46,7 @@ step!(optimizer) # making a optimization step with the calculated gradients and 
 ## First Real Project
 
 Here are some suggestions to implement your first real project with GradValley.jl:
-- The "Hello World" of Deep Learning: Try [the Tutorial on training a LeNet-like model](https://jonas208.github.io/GradValley.jl/) for handwritten digit recognition.
-- The [Reference]((https://jonas208.github.io/GradValley.jl/)): In the reference, you can find descriptions of all the layers, loss functions and optimizers.
-- Download a pre-trained model: More [pre-trained models](https://jonas208.github.io/GradValley.jl/) will likely be deployed over time.
-- Look at more [examples and tutorials](https://jonas208.github.io/GradValley.jl/).
+- The "Hello World" of Deep Learning: Try the Tutorial on training [A LeNet-like model for handwritten digit recognition](@ref).
+- The [Reference](@ref): In the reference, you can find descriptions of all the layers, loss functions and optimizers.
+- Download a pre-trained model: More [(Pre-Trained) Models](@ref) will likely be deployed over time.
+- Look at more [Tutorials and Examples](@ref).
