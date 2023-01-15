@@ -24,7 +24,7 @@ When optimizing the weights of a machine learning model, an attempt is always ma
 ### Current Limitations
 Due to the relatively early development status of this software, no GPU support is currently offered. GradValley.jl doesn't provide a real automatic differentiation (AD) engine like [PyTorch](https://pytorch.org/) does, for example. However, in the case of this software package, it is not really necessary to have real AD. Model building is mostly done with the [`SequentialContainer`](@ref), this clearly defines the forward pass and thus the backward pass is also known to the software.
 
-## Questions in Discussions
+## Questions and Discussions
 If you have any questions about this software package, please let me know in the [discussion](https://github.com/jonas208/GradValley.jl/discussions) section of the GitHub [repository](https://github.com/jonas208/GradValley.jl).
 
 ## Contributing
