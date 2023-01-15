@@ -4,6 +4,8 @@ A new lightweight package for deep learning with Julia
 ![My Image](logo.png)
 
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://jonas208.github.io/GradValley.jl/)
+[![Runtests](https://github.com/jonas208/GradValley.jl/actions/workflows/Runtests.yml/badge.svg)](https://github.com/jonas208/GradValley.jl/actions/workflows/Runtests.yml)
+[![codecov](https://codecov.io/github/jonas208/GradValley.jl/branch/main/graph/badge.svg?token=DJE8BZL8XR)](https://codecov.io/github/jonas208/GradValley.jl)
 
 ## ATTENTION, IMPORTANT INFORMATION: THIS REPOSITORY IS CURRENTLY UNDER CONSTRUCTION, IT IS NOT READY FOR USE YET!!
 
