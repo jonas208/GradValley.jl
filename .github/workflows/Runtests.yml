@@ -3,10 +3,24 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'LICENSE'
+      - 'README.md'
+      - 'AUTHORS.d'
+      - 'tutorials/*'
+      - 'logo.png'
+      - 'docs/*'
     tags: '*'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'LICENSE'
+      - 'README.md'
+      - 'AUTHORS.d'
+      - 'tutorials/*'
+      - 'logo.png'
+      - 'docs/*'
 jobs:
   test:
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ matrix.arch }} - ${{ github.event_name }}
