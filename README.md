@@ -28,6 +28,7 @@ Or install directly in a julia script:
 import Pkg
 Pkg.add(url="https://github.com/jonas208/GradValley.jl")
 ```
+GradValley.jl is supported on Julia 1.7 and later. It is tested on Julia 1.7 and on the latest stable release.
 
 # Getting Started
 This example shows the basic workflow on model building and how to use loss functions and optimizers to train the model:
