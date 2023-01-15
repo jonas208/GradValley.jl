@@ -3,10 +3,22 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - 'LICENSE'
+      - 'README.md'
+      - 'AUTHORS.d'
+      - 'tutorials/*'
+      - 'logo.png'
     tags: '*'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - 'LICENSE'
+      - 'README.md'
+      - 'AUTHORS.d'
+      - 'tutorials/*'
+      - 'logo.png'
 jobs:
   build:
     runs-on: ubuntu-latest
