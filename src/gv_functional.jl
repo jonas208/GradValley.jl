@@ -38,6 +38,7 @@ end
 
 # combine many tuples
 tuplejoin(t1::Tuple, t2::Tuple, t3...) = tuplejoin((t1..., t2...), t3...)
+# @inline tuplejoin(x, y, z...) = (x..., tuplejoin(y, z...)...)
 tuplejoin(t::Tuple) = t
 
 # creates an array of iterators (UnitRanges) for each dimension without the itertor for the given dimension (dim), the given size_tuple is the size of the orginal array, e.g. useful for dim_sum or softmax & backward_softmax
