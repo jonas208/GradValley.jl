@@ -12,6 +12,6 @@ makedocs(
 # See "Hosting Documentation" and deploydocs() in the Documenter manual
 # for more information.
 deploydocs(
-    repo = "github.com/jonas208/GradValley.jl.git"
+    repo = "github.com/jonas208/GradValley.jl.git",
     devurl=""
 )
