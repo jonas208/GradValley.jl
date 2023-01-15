@@ -13,4 +13,5 @@ makedocs(
 # for more information.
 deploydocs(
     repo = "github.com/jonas208/GradValley.jl.git"
+    devurl=""
 )
