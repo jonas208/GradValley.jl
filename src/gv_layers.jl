@@ -81,6 +81,39 @@ end
 Convolution-Layers (Conv & DepthwiseConv)
 =#
 
+@doc raw"""
+    Conv(in_channels::Int, out_channels::Int, kernel_size::Tuple{Int, Int}; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), groups::Int=1, activation_function::Union{Nothing, String}=nothing, init_mode::String="default_uniform", use_bias::Bool=true)
+
+    A convolution layer. Apply a 2D convolution over an input signal with additional batch and channel dimensions.
+    This layer currently (!) only accepts Float64 array inputs. 
+
+    # Arguments
+    - `in_channels::Int`: the number of channels in the input image
+    - `out_channels::Int`: the number of channels produced by the convolution
+    - `kernel_size::Tuple{Int, Int}`: the size of the convolving kernel
+    - `stride::Tuple{Int, Int}=(1, 1)`: the stride of the convolution
+    - `padding::Tuple{Int, Int}=(0, 0)`: the padding added to all four sides of the input
+    - `dilation::Tuple{Int, Int}=(1, 1)`: the spacing between kernel elements
+    - `groups::Int=1`: the number of blocked connections from input channels to output channels (in_channels and out_channels must both be divisible by groups)
+    - `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the convolution 
+    - `init_mode::String="default_uniform"`: the initization mode of the weight
+      (can be `"default_uniform"`, `"default"`, `"kaiming_uniform"`, `"kaiming"`, `"xavier_uniform" or `"xavier"``)
+    `use_bias::Bool=true`: if true, adds a learnable bias to the output
+
+    # Shapes
+    - Input: ``(N, C_{in}, H_{in}, W_{in})``
+    - Weight: ``(C_{out}, C_{in}, H_{w}, W_{w})``
+    - Output: ``(N, C_{out}, H_{out}, W_{out})``, where 
+        ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1)}{stride[2]}} + 1``
+        ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1)}{stride[2]}} + 1``
+
+    # Useful Fields/Variables
+    - `kernels::Array{Float64, 4}`: the learnabel weights of the layer
+    - `bias::Vector{Float64}`: the learnabel bias of the layer (used `when use_bias=true`)
+    - `gradients::Array{Float64, 4}`: the current gradients of the weights/kernels
+    - `bias_gradients::Vector{Float64}`: the current gradients of the bias
+
+"""
 mutable struct Conv
     in_channels::Int
     out_channels::Int
