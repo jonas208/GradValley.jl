@@ -84,35 +84,57 @@ Convolution-Layers (Conv & DepthwiseConv)
 @doc raw"""
     Conv(in_channels::Int, out_channels::Int, kernel_size::Tuple{Int, Int}; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), groups::Int=1, activation_function::Union{Nothing, String}=nothing, init_mode::String="default_uniform", use_bias::Bool=true)
 
-    A convolution layer. Apply a 2D convolution over an input signal with additional batch and channel dimensions.
-    This layer currently (!) only accepts Float64 array inputs. 
+A convolution layer. Apply a 2D convolution over an input signal with additional batch and channel dimensions.
+This layer currently (!) only accepts Float64 array inputs. 
 
-    # Arguments
-    - `in_channels::Int`: the number of channels in the input image
-    - `out_channels::Int`: the number of channels produced by the convolution
-    - `kernel_size::Tuple{Int, Int}`: the size of the convolving kernel
-    - `stride::Tuple{Int, Int}=(1, 1)`: the stride of the convolution
-    - `padding::Tuple{Int, Int}=(0, 0)`: the padding added to all four sides of the input
-    - `dilation::Tuple{Int, Int}=(1, 1)`: the spacing between kernel elements
-    - `groups::Int=1`: the number of blocked connections from input channels to output channels (in_channels and out_channels must both be divisible by groups)
-    - `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the convolution 
-    - `init_mode::String="default_uniform"`: the initization mode of the weight
-      (can be `"default_uniform"`, `"default"`, `"kaiming_uniform"`, `"kaiming"`, `"xavier_uniform" or `"xavier"``)
-    `use_bias::Bool=true`: if true, adds a learnable bias to the output
+# Arguments
+- `in_channels::Int`: the number of channels in the input image
+- `out_channels::Int`: the number of channels produced by the convolution
+- `kernel_size::Tuple{Int, Int}`: the size of the convolving kernel
+- `stride::Tuple{Int, Int}=(1, 1)`: the stride of the convolution
+- `padding::Tuple{Int, Int}=(0, 0)`: the zero padding added to all four sides of the input
+- `dilation::Tuple{Int, Int}=(1, 1)`: the spacing between kernel elements
+- `groups::Int=1`: the number of blocked connections from input channels to output channels (in-channels and out-channels must both be divisible by groups)
+- `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the convolution 
+- `init_mode::String="default_uniform"`: the initialization mode of the weights
+    (can be `"default_uniform"`, `"default"`, `"kaiming_uniform"`, `"kaiming"`, `"xavier_uniform"` or `"xavier"`)
+`use_bias::Bool=true`: if true, adds a learnable bias to the output
 
-    # Shapes
-    - Input: ``(N, C_{in}, H_{in}, W_{in})``
-    - Weight: ``(C_{out}, C_{in}, H_{w}, W_{w})``
-    - Output: ``(N, C_{out}, H_{out}, W_{out})``, where 
-        ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1)}{stride[2]}} + 1``
-        ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1)}{stride[2]}} + 1``
+# Shapes
+- Input: ``(N, C_{in}, H_{in}, W_{in})``
+- Weight: ``(C_{out}, \frac{C_{in}}{groups}, H_{w}, W_{w})``
+- Bias: ``(C_{out}, )``
+- Output: ``(N, C_{out}, H_{out}, W_{out})``, where 
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1)}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1)}{stride[2]}} + 1``
 
-    # Useful Fields/Variables
-    - `kernels::Array{Float64, 4}`: the learnabel weights of the layer
-    - `bias::Vector{Float64}`: the learnabel bias of the layer (used `when use_bias=true`)
-    - `gradients::Array{Float64, 4}`: the current gradients of the weights/kernels
-    - `bias_gradients::Vector{Float64}`: the current gradients of the bias
+# Useful Fields/Variables
+- `kernels::Array{Float64, 4}`: the learnable weights of the layer
+- `bias::Vector{Float64}`: the learnable bias of the layer (used when `use_bias=true`)
+- `gradients::Array{Float64, 4}`: the current gradients of the weights/kernels
+- `bias_gradients::Vector{Float64}`: the current gradients of the bias
 
+# Definition
+For one group, a multichannel 2D convolution (disregarding batch dimension and activation function) can be described as:
+- ``o_{c_{out}, y_{out}, x_{out}} = \big(\sum_{c_{in=1}}^{C_{in}}\sum_{y_w=1}^{H_{w}}\sum_{x_w=1}^{W_{w}} i_{c_{in}, y_{in}, x_{in}} \cdot w_{c_{out}, c_{in}, y_w, x_w}\big) + b_{c_{out}}``, where
+    - ``y_{in} = y_{out} + (stride[1] - 1) \cdot (y_{out} - 1) + (y_w - 1) \cdot dilation[1]``
+    - ``x_{in} = x_{out} + (stride[2] - 1) \cdot (x_{out} - 1) + (x_w - 1) \cdot dilation[2]``
+*O* is the output array, *I* the input array, *W* the weight array and *B* the bias array.
+
+# Examples
+```julia-repl
+# square kernels and fully default values of keyword arguments
+julia> m = Conv(3, 6, (5, 5))
+# non-square kernels and unequal stride and with padding as well as specified weight initialization mode
+# (init_mode="kaiming" stands for kaiming weight initialization with normally distributed values)
+julia> m = Conv(3, 6, (3, 5), stride=(2, 1), padding=(2, 1))
+# non-square kernels and unequal stride and with padding, dilation and 3 groups
+# (because groups=in_channels and out_channles is divisible by groups, it is even a depthwise convolution)
+julia> m = Conv(3, 6, (3, 5), stride=(2, 1), padding=(4, 2), dilation=(3, 1), groups=3)
+# computing the output of the layer (with random inputs)
+julia> input = rand(32, 3, 50, 50)
+julia> output = forward(m, rand)
+```
 """
 mutable struct Conv
     in_channels::Int
@@ -187,6 +209,59 @@ mutable struct Conv
     end
 end
 
+@doc raw"""
+    DepthwiseConv(in_channels::Int, out_channels::Int, kernel_size::Tuple{Int, Int}; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), activation_function::Union{Nothing, String}=nothing, init_mode::String="default_uniform", use_bias::Bool=true)
+
+A depthwise convolution layer. Apply a 2D depthwise convolution over an input signal with additional batch and channel dimensions.
+This layer currently (!) only accepts Float64 array inputs. 
+
+# Arguments
+- `in_channels::Int`: the number of channels in the input image
+- `out_channels::Int`: the number of channels produced by the convolution
+- `kernel_size::Tuple{Int, Int}`: the size of the convolving kernel
+- `stride::Tuple{Int, Int}=(1, 1)`: the stride of the convolution
+- `padding::Tuple{Int, Int}=(0, 0)`: the zero padding added to all four sides of the input
+- `dilation::Tuple{Int, Int}=(1, 1)`: the spacing between kernel elements
+- `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the convolution 
+- `init_mode::String="default_uniform"`: the initialization mode of the weights
+    (can be `"default_uniform"`, `"default"`, `"kaiming_uniform"`, `"kaiming"`, `"xavier_uniform"` or `"xavier"`)
+`use_bias::Bool=true`: if true, adds a learnable bias to the output
+
+# Shapes
+- Input: ``(N, C_{in}, H_{in}, W_{in})``
+- Weight: ``(C_{out}, \frac{C_{in}}{groups}, H_{w}, W_{w})``, where ``groups = in\_channels``
+- Bias: ``(C_{out}, )``
+- Output: ``(N, C_{out}, H_{out}, W_{out})``, where 
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1)}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1)}{stride[2]}} + 1``
+
+# Useful Fields/Variables
+- `kernels::Array{Float64, 4}`: the learnable weights of the layer
+- `bias::Vector{Float64}`: the learnable bias of the layer (used when `use_bias=true`)
+- `gradients::Array{Float64, 4}`: the current gradients of the weights/kernels
+- `bias_gradients::Vector{Float64}`: the current gradients of the bias
+
+# Definition
+A convolution is called depthwise if ``groups=in\_channels`` and ``out\_channels=k \cdot in\_channels``, where ``k`` is a positive integer.
+The second condition ensures that the of number out-channels is divisible by the number of groups/in-channels.
+In the background, the standard convolution operation is also used for this layer. 
+It is just an interface making clear that this layer can only perform a depthwise convolution.
+
+# Examples
+```julia-repl
+# square kernels and fully default values of keyword arguments
+julia> m = DepthwiseConv(3, 6, (5, 5))
+# non-square kernels and unequal stride and with padding as well as specified weight initialization mode
+# (init_mode="kaiming" stands for kaiming weight initialization with normally distributed values)
+julia> m = DepthwiseConv(3, 6, (3, 5), stride=(2, 1), padding=(2, 1))
+# non-square kernels and unequal stride and with padding, dilation and 3 groups
+# (because groups=in_channels and out_channles is divisible by groups, it is even a depthwise convolution)
+julia> m = DepthwiseConv(3, 6, (3, 5), stride=(2, 1), padding=(4, 2), dilation=(3, 1), groups=3)
+# computing the output of the layer (with random inputs)
+julia> input = rand(32, 3, 50, 50)
+julia> output = forward(m, rand)
+```
+"""
 mutable struct DepthwiseConv
     in_channels::Int
     out_channels::Int
@@ -338,6 +413,50 @@ end
 Pooling Layers (MaxPool & AvgPool)
 =#
 
+@doc raw"""
+    MaxPool(kernel_size::Tuple{Int, Int}; stride::Tuple{Int, Int}=kernel_size, padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), activation_function::Union{Nothing, String}=nothing)
+
+A maximum pooling layer. Apply a 2D maximum pooling over an input signal with additional batch and channel dimensions.
+This layer currently (!) only accepts Float64 array inputs. 
+
+# Arguments
+- `kernel_size::Tuple{Int, Int}`: the size of the window to take the maximum over
+- `stride::Tuple{Int, Int}=kernel_size`: the stride of the window
+- `padding::Tuple{Int, Int}=(0, 0)`: the zero padding added to all four sides of the input
+- `dilation::Tuple{Int, Int}=(1, 1)`: the spacing between the window elements
+- `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the pooling
+
+# Shapes
+- Input: ``(N, C, H_{in}, W_{in})``
+- Output: ``(N, C, H_{out}, W_{out})``, where 
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (kernel\_size[1] - 1)}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (kernel\_size[2] - 1)}{stride[2]}} + 1``
+
+# Definition
+A multichannel 2D maximum pooling (disregarding batch dimension and activation function) can be described as:
+```math
+\begin{align*}
+o_{c, y_{out}, x_{out}} = \max
+_{y_w = 1, ..., kernel\_size[1] \ x_w = 1, ..., kernel\_size[2]}
+i_{c, y_{in}, x_{in}}
+\end{align*}
+```
+Where
+- ``y_{in} = y_{out} + (stride[1] - 1) \cdot (y_{out} - 1) + (y_w - 1) \cdot dilation[1]``
+- ``x_{in} = x_{out} + (stride[2] - 1) \cdot (x_{out} - 1) + (x_w - 1) \cdot dilation[2]``
+*O* is the output array and *I* the input array.
+
+# Examples
+```julia-repl
+# pooling of square window of size=(3, 3) and automatically selected stride
+julia> m = MaxPool((3, 3))
+# pooling of non-square window with custom stride and padding
+julia> m = MaxPool((3, 2), stride=(2, 1), padding=(1, 1))
+# computing the output of the layer (with random inputs)
+julia> input = rand(32, 3, 50, 50)
+julia> output = forward(m, rand)
+```
+"""
 mutable struct MaxPool
     # characteristics of the layer
     kernel_size::Tuple{Int, Int}
@@ -436,6 +555,43 @@ function backward(pool_layer::MaxPool, next_layer)
     compute_previous_losses(pool_layer)
 end
 
+@doc raw"""
+    AvgPool(kernel_size::Tuple{Int, Int}; stride::Tuple{Int, Int}=kernel_size, padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), activation_function::Union{Nothing, String}=nothing)
+
+An average pooling layer. Apply a 2D average pooling over an input signal with additional batch and channel dimensions.
+This layer currently (!) only accepts Float64 array inputs. 
+
+# Arguments
+- `kernel_size::Tuple{Int, Int}`: the size of the window to take the average over
+- `stride::Tuple{Int, Int}=kernel_size`: the stride of the window
+- `padding::Tuple{Int, Int}=(0, 0)`: the zero padding added to all four sides of the input
+- `dilation::Tuple{Int, Int}=(1, 1)`: the spacing between the window elements
+- `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the pooling
+
+# Shapes
+- Input: ``(N, C, H_{in}, W_{in})``
+- Output: ``(N, C, H_{out}, W_{out})``, where 
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (kernel\_size[1] - 1)}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (kernel\_size[2] - 1)}{stride[2]}} + 1``
+
+# Definition
+A multichannel 2D average pooling (disregarding batch dimension and activation function) can be described as:
+- ``o_{c, y_{out}, x_{out}} = \frac{1}{kernel\_size[1] \cdot kernel\_size[2]} \sum_{i=1}^{kernel\_size[1]}\sum_{j=1}^{kernel\_size[2]} i_{c, y_{in}, x_{in}}``, where
+    - ``y_{in} = y_{out} + (stride[1] - 1) \cdot (y_{out} - 1) + (y_w - 1) \cdot dilation[1]``
+    - ``x_{in} = x_{out} + (stride[2] - 1) \cdot (x_{out} - 1) + (x_w - 1) \cdot dilation[2]``
+*O* is the output array and *I* the input array.
+
+# Examples
+```julia-repl
+# pooling of square window of size=(3, 3) and automatically selected stride
+julia> m = AvgPool((3, 3))
+# pooling of non-square window with custom stride and padding
+julia> m = AvgPool((3, 2), stride=(2, 1), padding=(1, 1))
+# computing the output of the layer (with random inputs)
+julia> input = rand(32, 3, 50, 50)
+julia> output = forward(m, rand)
+```
+"""
 mutable struct AvgPool
     # characteristics of the layer
     kernel_size::Tuple{Int, Int}
@@ -534,6 +690,43 @@ end
 Adaptive Pooling Layers (AdaptiveMaxPool & AdaptiveAvgPool)
 =#
 
+@doc raw"""
+    AdaptiveMaxPool(output_size::Tuple{Int, Int}; activation_function::Union{Nothing, String}=nothing)
+
+An adaptive maximum pooling layer. Apply a 2D adaptive maximum pooling over an input signal with additional batch and channel dimensions.
+For any input size, the size of the output is always equal to the specified ``output\_size``.
+This layer currently (!) only accepts Float64 array inputs. 
+
+# Arguments
+- `output_size::Tuple{Int, Int}`: the target output size of the image (can even be larger than the input size) of the form ``(H_{out}, W_{out})``
+- `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the pooling
+
+# Shapes
+- Input: ``(N, C, H_{in}, W_{in})``
+- Output: ``(N, C, H_{out}, W_{out})``, where ``(H_{out}, W_{out}) = output\_size``
+
+# Definition
+In some cases, the kernel-size and stride could be calculated in a way that the output would have the target size 
+(using a standard maximum pooling with the calculated kernel-size and stride, padding and dilation would not 
+be used in this case). However, this approach would only work if the input size is an integer multiple of the output size (See this question at stack overflow
+for further information: [stackoverflow.com/questions/53841509/how-does-adaptive-pooling-in-pytorch-work](https://stackoverflow.com/questions/53841509/how-does-adaptive-pooling-in-pytorch-work)).
+A more generic approach is to calculate the indices of the input with an additional algorithm only for adaptive pooling. 
+With this approach, it is even possible that the output is larger than the input what is really unusual for pooling simply because that is the opposite
+of what pooling actually should do, namely reducing the size. The `function get_in_indices(in_len, out_len)` in 
+[`gv_functional.jl`](https://github.com/jonas208/GradValley.jl/blob/main/src/gv_functional.jl)
+(line 95 - 113) implements such an algorithm (similar to the one at the stack overflow question), so you could check there on how exactly it is defined.
+Thus, the mathematical definition would be identical to the one at [`MaxPool`](@ref) with the difference that the indices ``y_{in}`` and ``x_{in}`` 
+have already been calculated beforehand.
+
+# Examples
+```julia-repl
+# target output size of 5x5
+julia> m = AdaptiveMaxPool((5, 5))
+# computing the output of the layer (with random inputs)
+julia> input = rand(32, 3, 50, 50)
+julia> output = forward(m, rand)
+```
+"""
 mutable struct AdaptiveMaxPool
     # characteristics of the layer
     output_size::Tuple{Int, Int}
@@ -614,6 +807,43 @@ function backward(pool_layer::AdaptiveMaxPool, next_layer)
     compute_previous_losses(pool_layer)
 end
 
+@doc raw"""
+    AdaptiveAvgPool(output_size::Tuple{Int, Int}; activation_function::Union{Nothing, String}=nothing)
+
+An adaptive average pooling layer. Apply a 2D adaptive average pooling over an input signal with additional batch and channel dimensions.
+For any input size, the size of the output is always equal to the specified ``output\_size``.
+This layer currently (!) only accepts Float64 array inputs. 
+
+# Arguments
+- `output_size::Tuple{Int, Int}`: the target output size of the image (can even be larger than the input size) of the form ``(H_{out}, W_{out})``
+- `activation_function::Union{Nothing, String}=nothing`: the element-wise activation function which will be applied to the output after the pooling
+
+# Shapes
+- Input: ``(N, C, H_{in}, W_{in})``
+- Output: ``(N, C, H_{out}, W_{out})``, where ``(H_{out}, W_{out}) = output\_size``
+
+# Definition
+In some cases, the kernel-size and stride could be calculated in a way that the output would have the target size 
+(using a standard average pooling with the calculated kernel-size and stride, padding and dilation would not 
+be used in this case). However, this approach would only work if the input size is an integer multiple of the output size (See this question at stack overflow
+for further information: [stackoverflow.com/questions/53841509/how-does-adaptive-pooling-in-pytorch-work](https://stackoverflow.com/questions/53841509/how-does-adaptive-pooling-in-pytorch-work)).
+A more generic approach is to calculate the indices of the input with an additional algorithm only for adaptive pooling. 
+With this approach, it is even possible that the output is larger than the input what is really unusual for pooling simply because that is the opposite
+of what pooling actually should do, namely reducing the size. The `function get_in_indices(in_len, out_len)` in 
+[`gv_functional.jl`](https://github.com/jonas208/GradValley.jl/blob/main/src/gv_functional.jl)
+(line 95 - 113) implements such an algorithm (similar to the one at the stack overflow question), so you could check there on how exactly it is defined.
+Thus, the mathematical definition would be identical to the one at [`AvgPool`](@ref) with the difference that the indices ``y_{in}`` and ``x_{in}`` 
+have already been calculated beforehand.
+
+# Examples
+```julia-repl
+# target output size of 5x5
+julia> m = AdaptiveAvgPool((5, 5))
+# computing the output of the layer (with random inputs)
+julia> input = rand(32, 3, 50, 50)
+julia> output = forward(m, rand)
+```
+"""
 mutable struct AdaptiveAvgPool
     # characteristics of the layer
     output_size::Tuple{Int, Int}
