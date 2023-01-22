@@ -7,8 +7,6 @@ A new lightweight package for deep learning with Julia
 [![Runtests](https://github.com/jonas208/GradValley.jl/actions/workflows/Runtests.yml/badge.svg)](https://github.com/jonas208/GradValley.jl/actions/workflows/Runtests.yml)
 [![codecov](https://codecov.io/github/jonas208/GradValley.jl/branch/main/graph/badge.svg?token=DJE8BZL8XR)](https://codecov.io/github/jonas208/GradValley.jl)
 
-## ATTENTION, IMPORTANT INFORMATION: THIS REPOSITORY IS CURRENTLY UNDER CONSTRUCTION, IT IS NOT READY FOR USE YET!!
-
 GradValley.jl is a new lightweight module for deep learning written in 100% Julia. It offers a high level interface for model building and training. It is completely independent from other machine learning packages like [Flux](https://github.com/FluxML/Flux.jl), [Knet](https://github.com/denizyuret/Knet.jl), [NNlib](https://github.com/FluxML/NNlib.jl) or [NNPACK](https://github.com/Maratyszcza/NNPACK). It is based on Julia's standard array type and needs no additional tensor type. <br>
 GradValley.jl's backend is written "human-friendly". So if you're looking into how exactly such deep learning algorithms work, looking at the [source code](https://github.com/jonas208/GradValley.jl/tree/main/src) could also be a good learning resource. See [this page in documentation](https://jonas208.github.io/GradValley.jl/learning/) for further information. <br>
 To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blob/main/README.md#installation) and [Getting Started](https://github.com/jonas208/GradValley.jl/blob/main/README.md#getting-started).
@@ -17,6 +15,7 @@ The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on t
 Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
 
 #### Note: This software package and its documentation are in an early stage of development and are therefore still a beta version.
+Important features which are currently still missing will be added over time.
 
 # Installation
 Use Julias's package manager in the REPL:
