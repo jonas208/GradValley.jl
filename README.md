@@ -14,7 +14,7 @@ To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blo
 The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
 Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
 
-#### Note: This software package and its documentation are in an early stage of development and are therefore still a beta version. Important features which may be missing at the moment will be added over time.
+#### Note: This software package and its documentation are in an early stage of development and are therefore still a beta version. Some important features which may be missing at the moment will be added over time.
 
 # Installation
 Use Julias's package manager in the REPL:
