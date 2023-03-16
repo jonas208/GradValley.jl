@@ -23,12 +23,9 @@ The order used in GradValley for processing images (or similar data) is NCHW, wh
 When optimizing the weights of a machine learning model, an attempt is always made to find the best possible error minimum. The derivatives, i.e. the gradients, of the error function in relation to the weights are required for this. So the goal is to find the "valley" of the error using the gradients ("grad" stands for gradient). That's why it's called GradValley.
 
 ### Current Limitations
-Due to the relatively early development status of this software, no GPU support is currently offered. GradValley.jl doesn't provide a real automatic differentiation (AD) engine like [PyTorch](https://pytorch.org/) does, for example. However, in the case of this software package, it is not really necessary to have real AD. Model building is mostly done with the [`SequentialContainer`](@ref), this clearly defines the forward pass and thus the backward pass is also known to the software.
+Due to the relatively early development status of this software, no GPU support is currently offered. 
 The following features are planned and likely to be added in the future:
-- ConvTranspose as a upsampling layer
 - more predefined activation function, loss functions and optimizers
-- an easy way to use skipped connections (for ResNet for example)
-- implementation of a GraphContainer as an alternative to SequentialContainer that allows a more flexible signal flows using AD
 
 ## GitHub Repository
 In the GitHub [repository of GradValley.jl](https://github.com/jonas208/GradValley.jl), you can find e.g. the source code, the source of this documentation and information about continues testing and it's code coverage. The repo is also the place to ask questions and share your thoughts about this project.
