@@ -5,7 +5,7 @@ Convolution-Operations: Forward & Backward
 # Performing a single channel convolution
 # Shape of input: (height, width)
 # Shape of kernel: (height, width)
-# stride and padding must be always given as tuples of length 2
+# stride, padding and dilation must be always given as tuples of length 2
 function conv(input::AbstractMatrix{<: AbstractFloat}, kernel::AbstractMatrix{<: AbstractFloat}; stride::NTuple{2, Integer}=(1, 1), padding::NTuple{2, Integer}=(0, 0), dilation::NTuple{2, Integer}=(0, 0))
     # storing all the necessary shapes
     input_height, input_width = size(input)
@@ -43,7 +43,7 @@ function conv(input::AbstractMatrix{<: AbstractFloat}, kernel::AbstractMatrix{<:
 end
 
 # Performing a multichannel convolution (on a hole batch)
-# Shape of input: (batch_size, in_channels, height, width)
+# Shape of input: (batch_size, in_channels / groups, height, width)
 # Shape of kernels: (out_channels, in_channels, height, width)
 # stride and padding must be always given as tuples of length 2
 function multichannel_conv(inputs::Array{Float64, 4}, kernels::Array{Float64, 4}, bias::Vector{Float64}, use_bias::Bool; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), groups::Int=1)
@@ -268,6 +268,208 @@ function multichannel_conv_bias_gradients(conv_layer)
     end
 
     bias_gradients::Vector{Float64} = conv_layer.bias_gradients
+    @turbo for out_channel in 1:out_channels # @inbounds Threads.@threads
+        value = 0.00
+        for index_batch in 1:current_batch_size, y_out in 1:output_height, x_out in 1:output_width
+            value += out_losses[index_batch, out_channel, y_out, x_out]
+        end
+        bias_gradients[out_channel] += value
+    end
+
+    return bias_gradients
+end
+
+# Performing a multichannel transpose convolution (on a hole batch)
+# Shape of input: (batch_size, in_channels, height, width)
+# Shape of kernels: (in_channels, out_channels / groups, height, width)
+# stride, padding and dilation must be always given as tuples of length 2
+function multichannel_conv_transpose(inputs::Array{Float64, 4}, kernels::Array{Float64, 4}, bias::Vector{Float64}, use_bias::Bool; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), output_padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), groups::Int=1)
+    # storing all the necessary shapes
+    current_batch_size, in_channels, input_height, input_width = size(inputs)
+    in_channels, out_channels_kernels, kernel_height, kernel_width = size(kernels)
+
+    # splitting up the hyperparameters per dimension
+    y_stride, x_stride = stride
+    y_padding, x_padding = padding
+    y_out_padding, x_out_padding = output_padding
+    y_dilation, x_dilation = dilation
+
+    if !(y_out_padding < y_stride || y_out_padding < y_dilation) || !(x_out_padding < x_stride || x_out_padding < x_dilation)
+        error("output_padding must be smaller than either stride or dilation, but got invalid values: y_output_padding: $y_out_padding x_ou_padding: $x_out_padding y_stride: $y_stride x_stride: $x_stride y_dilation: $y_dilation x_dilation: $x_dilation")
+    end
+
+    output_height = (input_height - 1) * y_stride + y_dilation * (kernel_height - 1) + y_out_padding + 1
+    output_width = (input_width - 1) * x_stride + x_dilation * (kernel_width - 1) + x_out_padding + 1
+
+    outputs = zeros(current_batch_size, out_channels_kernels * groups, output_height, output_width)
+
+    in_channels_per_group = in_channels ÷ groups
+    # actual computation
+    @inbounds Threads.@threads for index_batch in 1:current_batch_size
+
+        @turbo for group in 1:groups, in_channel_per_group in 1:in_channels_per_group, y_in in 1:input_height, x_in in 1:input_width
+            m = y_in + (y_stride - 1) * (y_in - 1)
+            n = x_in + (x_stride - 1) * (x_in - 1)
+            in_channel = (group * in_channels_per_group + 1) - in_channel_per_group
+            for out_channel_kernel in 1:out_channels_kernels, y_w in 1:kernel_height, x_w in 1:kernel_width
+                y_out = m + (y_w - 1) * y_dilation
+                x_out = n + (x_w - 1) * x_dilation
+                out_channel_output = out_channel_kernel + (group - 1) * out_channels_kernels
+                outputs[index_batch, out_channel_output, y_out, x_out] += kernels[in_channel, out_channel_kernel, y_w, x_w] * inputs[index_batch, in_channel, y_in, x_in]
+            end
+        end
+
+        # adding bias if necessary
+        if use_bias
+            @turbo for out_channel in 1:out_channels_kernels * groups
+                bias_value = bias[out_channel]
+                for y_out in 1:output_height, x_out in 1:output_width
+                    outputs[index_batch, out_channel, y_out, x_out] += bias_value
+                end
+            end
+        end
+
+    end
+
+    if padding != (0, 0)
+        # @views outputs = outputs[:, :, y_padding+1:output_height-y_padding, x_padding+1:output_width-x_padding] # scheint auch ohne @views gut und performant zu funktionieren
+        outputs = outputs[:, :, y_padding+1:output_height-y_padding, x_padding+1:output_width-x_padding]
+    end
+   
+    return outputs
+end
+
+# Computes the derivative of the inputs on the given layer, the results are used as the losses for the previous layer
+function multichannel_conv_transpose_losses(conv_layer)
+    # storing all the necessary shapes
+    current_batch_size, in_channels, input_height, input_width = size(conv_layer.inputs)
+    in_channels, out_channels_kernels, kernel_height, kernel_width = size(conv_layer.kernels)
+
+    # calculating the derivative of the out_losses
+    out_losses = conv_layer.losses
+    if conv_layer.df != 1
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+    end
+
+    # splitting up the hyperparameters per dimension
+    y_stride, x_stride = conv_layer.stride
+    y_dilation, x_dilation = conv_layer.dilation
+
+    # performing padding
+    if conv_layer.padding != (0, 0)
+        out_losses = zero_pad_2d(out_losses, conv_layer.padding)
+    end
+
+    losses = zeros(current_batch_size, in_channels, input_height, input_width)
+
+    in_channels_per_group = in_channels ÷ conv_layer.groups
+    @inbounds Threads.@threads for index_batch in 1:current_batch_size
+
+        @turbo for group in 1:conv_layer.groups, in_channel_per_group in 1:in_channels_per_group, y_in in 1:input_height, x_in in 1:input_width
+            m = y_in + (y_stride - 1) * (y_in - 1)
+            n = x_in + (x_stride - 1) * (x_in - 1)
+            in_channel = (group * in_channels_per_group + 1) - in_channel_per_group
+            value = 0.00
+            for out_channel_kernel in 1:out_channels_kernels, y_w in 1:kernel_height, x_w in 1:kernel_width
+                y_out = m + (y_w - 1) * y_dilation
+                x_out = n + (x_w - 1) * x_dilation
+                out_channel_output = out_channel_kernel + (group - 1) * out_channels_kernels
+                value += conv_layer.kernels[in_channel, out_channel_kernel, y_w, x_w] * out_losses[index_batch, out_channel_output, y_out, x_out]
+            end
+            losses[index_batch, in_channel, y_in, x_in] = value
+        end
+
+    end
+
+    return losses
+end
+
+# Computes the derivative of the kernels/weights on the given layer, the results are used to optimize the kernels/weights
+function multichannel_conv_transpose_gradients(conv_layer)
+    # storing all the necessary shapes
+    current_batch_size, in_channels, input_height, input_width = size(conv_layer.inputs)
+    in_channels, out_channels_kernels, kernel_height, kernel_width = size(conv_layer.kernels)
+
+    # calculating the derivative of the out_losses
+    out_losses = conv_layer.losses
+    if conv_layer.df != 1
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+    end
+
+    # splitting up the hyperparameters per dimension
+    y_stride, x_stride = conv_layer.stride
+    y_dilation, x_dilation = conv_layer.dilation
+
+    # performing padding
+    if conv_layer.padding != (0, 0)
+        out_losses = zero_pad_2d(out_losses, conv_layer.padding)
+    end
+
+    gradients = zeros(in_channels, out_channels_kernels, kernel_height, kernel_width)
+
+    in_channels_per_group = in_channels ÷ conv_layer.groups
+    #= ANOTHER VERSION
+    @turbo for index_batch in 1:current_batch_size # turbo
+
+        for group in 1:conv_layer.groups, in_channel_per_group in 1:in_channels_per_group, y_in in 1:input_height, x_in in 1:input_width
+            m = y_in + (y_stride - 1) * (y_in - 1)
+            n = x_in + (x_stride - 1) * (x_in - 1)
+            in_channel = (group * in_channels_per_group + 1) - in_channel_per_group
+            for out_channel_kernel in 1:out_channels_kernels, y_w in 1:kernel_height, x_w in 1:kernel_width
+                y_out = m + (y_w - 1) * y_dilation
+                x_out = n + (x_w - 1) * x_dilation
+                out_channel_output = out_channel_kernel + (group - 1) * out_channels_kernels
+                gradients[in_channel, out_channel_kernel, y_w, x_w] += conv_layer.inputs[index_batch, in_channel, y_in, x_in] * out_losses[index_batch, out_channel_output, y_out, x_out]
+            end
+        end
+
+    end
+    =#
+    @inbounds Threads.@threads for in_channel_per_group in 1:in_channels_per_group
+
+        @turbo for group in 1:conv_layer.groups, out_channel_kernel in 1:out_channels_kernels, y_w in 1:kernel_height, x_w in 1:kernel_width
+            in_channel = (group * in_channels_per_group + 1) - in_channel_per_group
+            out_channel_output = out_channel_kernel + (group - 1) * out_channels_kernels
+            value = 0.00
+            for y_in in 1:input_height, x_in in 1:input_width
+                m = y_in + (y_stride - 1) * (y_in - 1)
+                n = x_in + (x_stride - 1) * (x_in - 1)
+                y_out = m + (y_w - 1) * y_dilation
+                x_out = n + (x_w - 1) * x_dilation
+                for index_batch in 1:current_batch_size
+                    value += conv_layer.inputs[index_batch, in_channel, y_in, x_in] * out_losses[index_batch, out_channel_output, y_out, x_out]
+                end
+            end
+            gradients[in_channel, out_channel_kernel, y_w, x_w] = value
+        end
+
+    end
+    
+    return gradients
+end
+
+
+# Computes the derivative of the bias on the given layer, the results are used to optimize the bias
+function multichannel_conv_transpose_bias_gradients(conv_layer)
+    # storing all the necessary shapes
+    current_batch_size, in_channels, input_height, input_width = size(conv_layer.inputs)
+    in_channels, out_channels_kernels, kernel_height, kernel_width = size(conv_layer.kernels)
+
+    # calculating the derivative of the out_losses
+    out_losses = conv_layer.losses
+    if conv_layer.df != 1
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+    end
+
+    # performing padding
+    if conv_layer.padding != (0, 0)
+        out_losses = zero_pad_2d(out_losses, conv_layer.padding)
+    end
+    # getting output size before the "padding" applied in forward pass (actually the opposite of normal padding) 
+    current_batch_size, out_channels, output_height, output_width = size(out_losses)
+
+    bias_gradients = conv_layer.bias_gradients
+
     @turbo for out_channel in 1:out_channels # @inbounds Threads.@threads
         value = 0.00
         for index_batch in 1:current_batch_size, y_out in 1:output_height, x_out in 1:output_width

@@ -30,4 +30,12 @@ function zero_pad_nd(input::Array, padding::Tuple)
     return output
 end
 
-# MISSING: an optimized version of the zero_pad_nd for (exactly) two dimensions
+function zero_pad_2d(input::AbstractArray, padding::Tuple{Integer, Integer})
+    current_batch_size, channels, height, width = size(input)
+    y_padding, x_padding = padding
+    output_height, output_width = height + 2 * y_padding, width + 2 * x_padding
+    output = zeros(eltype(input), current_batch_size, channels, output_height, output_width)
+    output[:, :, y_padding + 1:output_height - y_padding, x_padding + 1:output_width - x_padding] = input
+
+    return output
+end

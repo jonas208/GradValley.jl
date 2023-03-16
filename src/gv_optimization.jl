@@ -1,6 +1,6 @@
 module Optimization
 
-using ..Layers: SequentialContainer, Conv, DepthwiseConv, BatchNorm2d, Fc
+using ..Layers: SequentialContainer, GraphContainer, Conv, DepthwiseConv, ConvTranspose, BatchNorm2d, Fc, extract_layers
 using ..Functional
 # make Functional accessible via gv functional
 gv_functional = Functional
@@ -14,6 +14,7 @@ export mse_loss, mae_loss, cross_entropy_loss, cross_entropy_softmax_included_lo
 Internal functions, Internals
 =#
 
+#=
 # extracts all layers in a stack of (nested) Sequential Containers and layers recursively, returns a vector only containing all the pure layers
 function extract_layers(sc::SequentialContainer, layer_stack)
     # println("called extract_layers")
@@ -27,6 +28,7 @@ function extract_layers(sc::SequentialContainer, layer_stack)
 
     return layer_stack
 end
+=#
 
 # computes the mean of an arbitrary sized input array
 function mean(x)
@@ -46,7 +48,7 @@ mutable struct SGD
     # custom constructor
     # function SGD(layer_stack::Union{Vector, SequentialContainer}, learning_rate::AbstractFloat; momentum::AbstractFloat=0.90, weight_decay::Union{Nothing, AbstractFloat}=nothing, dampening::AbstractFloat=0.00, maximize::Bool=false) # ::Real
     function SGD(layer_stack, learning_rate::AbstractFloat; weight_decay=nothing, dampening=0.00, maximize=false) # ::Real
-        if typeof(layer_stack) == SequentialContainer
+        if typeof(layer_stack) == SequentialContainer || typeof(layer_stack) == GraphContainer
             # println("something")
             # layer_stack = layer_stack.layer_stack
             layer_stack = extract_layers(layer_stack, [])
@@ -82,7 +84,7 @@ mutable struct MSGD
     # custom constructor
     # function MSGD(layer_stack::Union{Vector, SequentialContainer}, learning_rate::AbstractFloat; momentum::AbstractFloat=0.90, weight_decay::Union{Nothing, AbstractFloat}=nothing, dampening::AbstractFloat=0.00, maximize::Bool=false) # ::Real
     function MSGD(layer_stack, learning_rate::AbstractFloat; momentum=0.90, weight_decay=nothing, dampening=0.00, maximize=false) # ::Real
-        if typeof(layer_stack) == SequentialContainer
+        if typeof(layer_stack) == SequentialContainer || typeof(layer_stack) == GraphContainer
             # println("something")
             # layer_stack = layer_stack.layer_stack
             layer_stack = extract_layers(layer_stack, [])
@@ -121,7 +123,7 @@ mutable struct Nesterov
     # custom constructor
     # function Nesterov(layer_stack::Union{Vector, SequentialContainer}, learning_rate::AbstractFloat; momentum::AbstractFloat=0.90, weight_decay::Union{Nothing, AbstractFloat}=nothing, dampening::AbstractFloat=0.00, maximize::Bool=false) # ::Real
     function Nesterov(layer_stack, learning_rate::AbstractFloat; momentum=0.90, weight_decay=nothing, dampening=0.00, maximize=false) # ::Real
-        if typeof(layer_stack) == SequentialContainer
+        if typeof(layer_stack) == SequentialContainer || typeof(layer_stack) == GraphContainer
             # println("something")
             # layer_stack = layer_stack.layer_stack
             layer_stack = extract_layers(layer_stack, [])
@@ -152,7 +154,7 @@ function step!(optimizer::Union{SGD, MSGD, Nesterov})
         momentum = optimizer.momentum
     end
     for (layer_index, layer) in enumerate(optimizer.layer_stack)
-        if typeof(layer) == Conv || typeof(layer) == DepthwiseConv
+        if typeof(layer) == Conv || typeof(layer) == DepthwiseConv || typeof(layer) == ConvTranspose
             # println("Conv")
             weight = layer.kernels
             bias = layer.bias
@@ -207,7 +209,7 @@ function step!(optimizer::Union{SGD, MSGD, Nesterov})
             bias_gradient = modified_bias_gradient
         end
 
-        if typeof(layer) == Conv || typeof(layer) == DepthwiseConv
+        if typeof(layer) == Conv || typeof(layer) == DepthwiseConv || typeof(layer) == ConvTranspose
             # println(size(layer.kernels))
             # println(size(layer.gradients))
             if optimizer.maximize
