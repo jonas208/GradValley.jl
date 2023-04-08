@@ -24,7 +24,7 @@ import Pkg; Pkg.add("MLDatasets")
 ```
 Then we can import MLDatasets:
 ```julia
-using MLDatasets # # a package for downloading datasets
+using MLDatasets # a package for downloading datasets
 ```
 
 #### Splitting up the dataset into a train and a test partition
@@ -200,6 +200,8 @@ We will use the [BSON.jl](https://github.com/JuliaIO/BSON.jl) package for saving
 ```julia
 # when this file is run as the main script,
 # then train() is run and the final model will be saved using a package called BSON.jl
+import Pkg; Pkg.add("MLDatasets")
+using BSON: @save
 if abspath(PROGRAM_FILE) == @__FILE__
     train()
     file_name = "MNIST_with_LeNet5_model.bson"
