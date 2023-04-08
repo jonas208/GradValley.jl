@@ -200,7 +200,7 @@ We will use the [BSON.jl](https://github.com/JuliaIO/BSON.jl) package for saving
 ```julia
 # when this file is run as the main script,
 # then train() is run and the final model will be saved using a package called BSON.jl
-import Pkg; Pkg.add("MLDatasets")
+import Pkg; Pkg.add("BSON")
 using BSON: @save
 if abspath(PROGRAM_FILE) == @__FILE__
     train()
