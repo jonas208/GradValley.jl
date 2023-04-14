@@ -120,6 +120,8 @@ function Base.getindex(DL::DataLoader, index_range::UnitRange{<: Integer})
 
     return batches
 end
+# pretty-printing for the DataLoader struct
+Base.show(io::IO, DL::DataLoader) = print(io, "DataLoader(get_function=$(DL.get_function), dataset_size=$(DL.dataset_size), num_batches=$(DL.num_batches), batch_size=$(DL.batch_size), shuffle=$(DL.shuffle), drop_last=$(DL.drop_last))")
 
 # manually shuffle the data loader (even if shuffle is disabled in the given data loader)
 # it is recommend to reshuffle after each epoch during training

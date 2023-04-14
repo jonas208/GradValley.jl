@@ -2439,6 +2439,7 @@ function summarize_model(container::Union{SequentialContainer, GraphContainer})
     return summary, num_params
 end
 
+# pretty-printing for all layers and containers 
 Base.show(io::IO, layer::Union{Conv, DepthwiseConv, ConvTranspose, Fc, BatchNorm2d, MaxPool, AdaptiveMaxPool, AvgPool, AdaptiveAvgPool, Reshape, Softmax, Identity}) = print(io, get_layer_summary(layer)[1])
 Base.show(io::IO, container::Union{SequentialContainer, GraphContainer}) = print(io, summarize_model(container)[1])
 

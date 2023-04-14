@@ -246,6 +246,11 @@ function step!(optimizer::Union{SGD, MSGD, Nesterov})
     optimizer.iteration_counter += 1
 end
 
+# pretty-printing for the SGD, MSGD and Nesterov structs
+Base.show(io::IO, sgd::SGD) = print(io, "SGD(learning_rate=$(sgd.learning_rate), weight_decay=$(sgd.weight_decay), dampening=$(sgd.dampening), maximize=$(sgd.maximize), iteration_counter=$(sgd.iteration_counter), layer_stack=$(sgd.layer_stack))")
+Base.show(io::IO, msgd::MSGD) = print(io, "MSGD(learning_rate=$(msgd.learning_rate), momentum=$(msgd.momentum), weight_decay=$(msgd.weight_decay), dampening=$(msgd.dampening), maximize=$(msgd.maximize), iteration_counter=$(msgd.iteration_counter), layer_stack=$(msgd.layer_stack))")
+Base.show(io::IO, nesterov::Nesterov) = print(io, "Nesterov(learning_rate=$(nesterov.learning_rate), momentum=$(nesterov.momentum), weight_decay=$(nesterov.weight_decay), dampening=$(nesterov.dampening), maximize=$(nesterov.maximize), iteration_counter=$(nesterov.iteration_counter), layer_stack=$(nesterov.layer_stack))")
+
 # mean absolute loss (l1loss), size/shape of prediction and target must be equal
 # size/shape of prediction/target: (*) -> where * means any number of dimensions
 function mae_loss(prediction, target; reduction_method::Union{String, Nothing}="mean", return_derivative::Bool=true)
