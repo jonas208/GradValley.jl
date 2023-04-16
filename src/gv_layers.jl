@@ -2336,8 +2336,8 @@ function get_layer_summary(layer)
     num_params = 0
     if typeof(layer) == Conv
     # if typeof(layer) == Conv || typeof(layer) == DepthwiseConv
-        # summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.stride), dilation=$(layer.dilation), groups=$(layer.groups), activation_function=$(layer.activation_function), init_mode=$(layer.init_mode), use_bias=$(layer.use_bias)"
-        summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.stride), dilation=$(layer.dilation), groups=$(layer.groups), activation_function=$(layer.activation_function), use_bias=$(layer.use_bias)"
+        # summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.padding), dilation=$(layer.dilation), groups=$(layer.groups), activation_function=$(layer.activation_function), init_mode=$(layer.init_mode), use_bias=$(layer.use_bias)"
+        summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.padding), dilation=$(layer.dilation), groups=$(layer.groups), activation_function=$(layer.activation_function), use_bias=$(layer.use_bias)"
         if layer.use_bias
             num_params += length(layer.kernels) + length(layer.bias)
         else
@@ -2345,15 +2345,23 @@ function get_layer_summary(layer)
         end
     # groups are not shown with this version
     elseif typeof(layer) == DepthwiseConv
-            # summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.stride), dilation=$(layer.dilation), activation_function=$(layer.activation_function), init_mode=$(layer.init_mode), use_bias=$(layer.use_bias)"
-            summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.stride), dilation=$(layer.dilation), activation_function=$(layer.activation_function), use_bias=$(layer.use_bias)"
+            # summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.padding), dilation=$(layer.dilation), activation_function=$(layer.activation_function), init_mode=$(layer.init_mode), use_bias=$(layer.use_bias)"
+            summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.padding), dilation=$(layer.dilation), activation_function=$(layer.activation_function), use_bias=$(layer.use_bias)"
+        if layer.use_bias
+            num_params += length(layer.kernels) + length(layer.bias)
+        else
+            num_params += length(layer.kernels)
+        end
+    elseif typeof(layer) == ConvTranspose
+        # summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.padding), output_padding=$(layer.output_padding), dilation=$(layer.dilation), groups=$(layer.groups), activation_function=$(layer.activation_function), init_mode=$(layer.init_mode), use_bias=$(layer.use_bias)"
+        summary *= "in_channels=$(layer.in_channels), out_channels=$(layer.out_channels), kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.padding), output_padding=$(layer.output_padding), dilation=$(layer.dilation), groups=$(layer.groups), activation_function=$(layer.activation_function), use_bias=$(layer.use_bias)"
         if layer.use_bias
             num_params += length(layer.kernels) + length(layer.bias)
         else
             num_params += length(layer.kernels)
         end
     elseif typeof(layer) == MaxPool || typeof(layer) == AvgPool
-        summary *= "kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.stride), dilation=$(layer.dilation), activation_function=$(layer.activation_function)"
+        summary *= "kernel_size=$(layer.kernel_size), stride=$(layer.stride), padding=$(layer.padding), dilation=$(layer.dilation), activation_function=$(layer.activation_function)"
     elseif typeof(layer) == AdaptiveMaxPool || typeof(layer) == AdaptiveAvgPool
         summary *= "output_size=$(layer.output_size), activation_function=$(layer.activation_function)"
     elseif typeof(layer) == Fc

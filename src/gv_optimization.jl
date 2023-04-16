@@ -36,18 +36,53 @@ function mean(x)
 end
 
 # implementation of stochastic gradient descent optimization algorithm (including weight decay and dampening)
+@doc raw"""
+    SGD(layer_stack, learning_rate::Real; weight_decay::Real=0.00, dampening::Real=0.00, maximize::Bool=false)
+
+Implementation of stochastic gradient descent optimization algorithm (including optional weight decay and dampening).
+
+# Arguments
+- `layer_stack::Union{Vector, SequentialContainer, GraphContainer}`: the vector containing the layers with the parameters to be optimized (can also contain layers without any parameters)
+- `learning_rate::Real`: the learning rate
+- `weight_decay::Real=0.00`: the weight decay (L2 penalty)
+- `dampening::Real=0.00`: the dampening (normally just for optimizers with momentum, however, can be theoretically used without, in this case acts like: ``(1 - dampening) \cdot learning\_rate``)
+- `maximize::Bool=false`: maximize the parameters, instead of minimizing 
+
+# Definition
+For example, a definiton of this algorithem in pseudo code can be found [here](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html?highlight=sgd#torch.optim.SGD).
+(Note that in this case of a simple SGD with no momentum, the momentum μ is zero in the sense of the mentioned documentation.)
+
+# Examples
+```julia-repl
+# define a model
+julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
+# initialize a SGD optimizer with learning-rate equal 0.1 and weight decay equal to 0.5 (otherwise default values)
+julia> optimizer = SGD(model, 0.1, weight_decay=0.5)
+# create some random input data
+julia> input = rand(32, 1000)
+# compute the output of the model
+julia> output = forward(model, input)
+# generate some random target values 
+julia> target = rand(size(output)...)
+# compute the loss and it's derivative 
+julia> loss, loss_derivative = mse_loss(output, target)
+# computet the gradients 
+julia> backward(model, loss_derivative)
+# perform a single optimization step (parameter update)
+julia> step!(optimizer)
+```
+"""
 mutable struct SGD
     layer_stack::Vector
     learning_rate::Real
-    weight_decay::Union{Nothing, Real}
+    weight_decay::Real
     dampening::Real
     maximize::Bool
     modified_weight_gradients::Vector
     modified_bias_gradients::Vector
     iteration_counter::Int
     # custom constructor
-    # function SGD(layer_stack::Union{Vector, SequentialContainer}, learning_rate::AbstractFloat; momentum::AbstractFloat=0.90, weight_decay::Union{Nothing, AbstractFloat}=nothing, dampening::AbstractFloat=0.00, maximize::Bool=false) # ::Real
-    function SGD(layer_stack, learning_rate::AbstractFloat; weight_decay=nothing, dampening=0.00, maximize=false) # ::Real
+    function SGD(layer_stack, learning_rate::Real; weight_decay::Real=0.00, dampening::Real=0.00, maximize::Bool=false) # ::Real
         if typeof(layer_stack) == SequentialContainer || typeof(layer_stack) == GraphContainer
             # println("something")
             # layer_stack = layer_stack.layer_stack
@@ -75,15 +110,14 @@ mutable struct MSGD
     layer_stack::Vector
     learning_rate::Real
     momentum::Real
-    weight_decay::Union{Nothing, Real}
+    weight_decay::Real
     dampening::Real
     maximize::Bool
     modified_weight_gradients::Vector
     modified_bias_gradients::Vector
     iteration_counter::Int
     # custom constructor
-    # function MSGD(layer_stack::Union{Vector, SequentialContainer}, learning_rate::AbstractFloat; momentum::AbstractFloat=0.90, weight_decay::Union{Nothing, AbstractFloat}=nothing, dampening::AbstractFloat=0.00, maximize::Bool=false) # ::Real
-    function MSGD(layer_stack, learning_rate::AbstractFloat; momentum=0.90, weight_decay=nothing, dampening=0.00, maximize=false) # ::Real
+    function MSGD(layer_stack::Union{Vector, SequentialContainer, GraphContainer}, learning_rate::Real; momentum::Real=0.90, weight_decay::Real=0.00, dampening::Real=0.00, maximize::Bool=false) # ::Real
         if typeof(layer_stack) == SequentialContainer || typeof(layer_stack) == GraphContainer
             # println("something")
             # layer_stack = layer_stack.layer_stack
@@ -110,19 +144,55 @@ mutable struct MSGD
 end
 
 # implementation of nesterov optimization algorithm (including weight decay and dampening)
+@doc raw"""
+    Nesterov(layer_stack::Union{Vector, SequentialContainer, GraphContainer}, learning_rate::Real; momentum::Real=0.90, weight_decay::Real=0.00, dampening::Real=0.00, maximize::Bool=false)
+
+Implementation of stochastic gradient descent with nesterov momentum optimization algorithm (including optional weight decay and dampening).
+
+# Arguments
+- `layer_stack::Union{Vector, SequentialContainer, GraphContainer}`: the vector OR the container (SequentialContainer/GraphContainer, often simply the whole model) containing the layers with the parameters to be optimized (can also contain layers without any parameters)
+- `learning_rate::Real`: the learning rate
+- `momentum::Real=0.90`: the momentum factor
+- `weight_decay::Real=0.00`: the weight decay (L2 penalty)
+- `dampening::Real=0.00`: the dampening for the momentum (for true nesterov momentum, dampening must be 0)
+- `maximize::Bool=false`: maximize the parameters, instead of minimizing 
+
+# Definition
+For example, a definiton of this algorithem in pseudo code can be found [here](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html?highlight=sgd#torch.optim.SGD).
+(Note that in this case of a simple SGD with no momentum, the momentum μ is zero in the sense of the mentioned documentation.)
+
+# Examples
+```julia-repl
+# define a model
+julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
+# initialize a SGD optimizer with learning-rate equal 0.1 and weight decay equal to 0.5 (otherwise default values)
+julia> optimizer = SGD(model, 0.1, weight_decay=0.5)
+# create some random input data
+julia> input = rand(32, 1000)
+# compute the output of the model
+julia> output = forward(model, input)
+# generate some random target values 
+julia> target = rand(size(output)...)
+# compute the loss and it's derivative 
+julia> loss, loss_derivative = mse_loss(output, target)
+# computet the gradients 
+julia> backward(model, loss_derivative)
+# perform a single optimization step (parameter update)
+julia> step!(optimizer)
+```
+"""
 mutable struct Nesterov
     layer_stack::Vector
     learning_rate::Real
     momentum::Real
-    weight_decay::Union{Nothing, Real}
+    weight_decay::Real
     dampening::Real
     maximize::Bool
     modified_weight_gradients::Vector
     modified_bias_gradients::Vector
     iteration_counter::Int
     # custom constructor
-    # function Nesterov(layer_stack::Union{Vector, SequentialContainer}, learning_rate::AbstractFloat; momentum::AbstractFloat=0.90, weight_decay::Union{Nothing, AbstractFloat}=nothing, dampening::AbstractFloat=0.00, maximize::Bool=false) # ::Real
-    function Nesterov(layer_stack, learning_rate::AbstractFloat; momentum=0.90, weight_decay=nothing, dampening=0.00, maximize=false) # ::Real
+    function Nesterov(layer_stack, learning_rate::Real; momentum::Real=0.90, weight_decay::Real=0.00, dampening::Real=0.00, maximize::Bool=false) # ::Real
         if typeof(layer_stack) == SequentialContainer || typeof(layer_stack) == GraphContainer
             # println("something")
             # layer_stack = layer_stack.layer_stack
@@ -145,9 +215,36 @@ mutable struct Nesterov
             0)
     end
 end
+"""
+    step!(optimizer::Union{SGD, MSGD, Nesterov})
+
+Perform a single optimization step (parameter update) for the given optimizer.
+
+# Examples
+```julia-repl
+# define a model
+julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
+# initialize an optimizer
+julia> optimizer = SGD(model, 0.1)
+# create some random input data
+julia> input = rand(32, 1000)
+# compute the output of the model
+julia> output = forward(model, input)
+# generate some random target values 
+julia> target = rand(size(output)...)
+# compute the loss and it's derivative 
+julia> loss, loss_derivative = mse_loss(output, target)
+# computet the gradients 
+julia> backward(model, loss_derivative)
+# perform a single optimization step (parameter update)
+julia> step!(optimizer)
+```
+"""
+function step! end
 
 # updates the weights with the hyperparameters defined in the given optimizer of type MSGD
 function step!(optimizer::Union{SGD, MSGD, Nesterov})
+    optimizer.iteration_counter += 1
     if typeof(optimizer) == SGD
         momentum = 0
     else
@@ -176,7 +273,7 @@ function step!(optimizer::Union{SGD, MSGD, Nesterov})
             continue
         end
 
-        if !isnothing(optimizer.weight_decay)
+        if optimizer.weight_decay != 0.00
             weight_gradient = weight_gradient .+ optimizer.weight_decay * weight
             bias_gradient = bias_gradient .+ optimizer.weight_decay * bias
         end
@@ -243,7 +340,7 @@ function step!(optimizer::Union{SGD, MSGD, Nesterov})
         optimizer.modified_weight_gradients[layer_index] = modified_weight_gradient # * optimizer.learning_rate -> WRONG
         optimizer.modified_bias_gradients[layer_index] = modified_bias_gradient # * optimizer.learning_rate -> WRONG
     end
-    optimizer.iteration_counter += 1
+    # optimizer.iteration_counter += 1
 end
 
 # pretty-printing for the SGD, MSGD and Nesterov structs

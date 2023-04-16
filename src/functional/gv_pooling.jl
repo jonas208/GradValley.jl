@@ -321,8 +321,19 @@ function multichannel_maxpool_backward(pool_layer)
             if !(x_position <= pool_layer.padding[2])
                 x_position -= pool_layer.padding[2] # * 2
             end
+            #=
+            if y_position > input_height || x_position > input_width
+                continue
+            end
+            =#
+            if !(y_position > input_height || x_position > input_width)
+                # losses[index_batch, channel, y_position, x_position] = value
+                losses[index_batch, channel, y_position, x_position] += value
+            end
+            #=
             # losses[index_batch, channel, y_position, x_position] = value
             losses[index_batch, channel, y_position, x_position] += value
+            =#
         end
         # end
         # end 

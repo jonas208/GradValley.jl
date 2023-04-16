@@ -339,6 +339,62 @@ function multichannel_conv_transpose(inputs::Array{Float64, 4}, kernels::Array{F
     return outputs
 end
 
+function multichannel_conv_transpose_develop(inputs::Array{Float64, 4}, kernels::Array{Float64, 4}, bias::Vector{Float64}, use_bias::Bool; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), output_padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), groups::Int=1)
+    # storing all the necessary shapes
+    current_batch_size, in_channels, input_height, input_width = size(inputs)
+    in_channels, out_channels_kernels, kernel_height, kernel_width = size(kernels)
+
+    # splitting up the hyperparameters per dimension
+    y_stride, x_stride = stride
+    y_padding, x_padding = padding
+    y_out_padding, x_out_padding = output_padding
+    y_dilation, x_dilation = dilation
+
+    if !(y_out_padding < y_stride || y_out_padding < y_dilation) || !(x_out_padding < x_stride || x_out_padding < x_dilation)
+        error("output_padding must be smaller than either stride or dilation, but got invalid values: y_output_padding: $y_out_padding x_ou_padding: $x_out_padding y_stride: $y_stride x_stride: $x_stride y_dilation: $y_dilation x_dilation: $x_dilation")
+    end
+
+    output_height = (input_height - 1) * y_stride + y_dilation * (kernel_height - 1) + y_out_padding + 1
+    output_width = (input_width - 1) * x_stride + x_dilation * (kernel_width - 1) + x_out_padding + 1
+
+    outputs = zeros(current_batch_size, out_channels_kernels * groups, output_height, output_width)
+
+    in_channels_per_group = in_channels ÷ groups
+    # actual computation
+    for index_batch in 1:current_batch_size
+
+        @turbo for group in 1:groups, in_channel_per_group in 1:in_channels_per_group, y_in in 1:input_height, x_in in 1:input_width
+            m = y_in + (y_stride - 1) * (y_in - 1)
+            n = x_in + (x_stride - 1) * (x_in - 1)
+            in_channel = (group * in_channels_per_group + 1) - in_channel_per_group
+            for out_channel_kernel in 1:out_channels_kernels, y_w in 1:kernel_height, x_w in 1:kernel_width
+                y_out = m + (y_w - 1) * y_dilation
+                x_out = n + (x_w - 1) * x_dilation
+                out_channel_output = out_channel_kernel + (group - 1) * out_channels_kernels
+                outputs[index_batch, out_channel_output, y_out, x_out] += kernels[in_channel, out_channel_kernel, y_w, x_w] * inputs[index_batch, in_channel, y_in, x_in]
+            end
+        end
+
+        # adding bias if necessary
+        if use_bias
+            @turbo for out_channel in 1:out_channels_kernels * groups
+                bias_value = bias[out_channel]
+                for y_out in 1:output_height, x_out in 1:output_width
+                    outputs[index_batch, out_channel, y_out, x_out] += bias_value
+                end
+            end
+        end
+
+    end
+
+    if padding != (0, 0)
+        # @views outputs = outputs[:, :, y_padding+1:output_height-y_padding, x_padding+1:output_width-x_padding] # scheint auch ohne @views gut und performant zu funktionieren
+        outputs = outputs[:, :, y_padding+1:output_height-y_padding, x_padding+1:output_width-x_padding]
+    end
+   
+    return outputs
+end
+
 # Computes the derivative of the inputs on the given layer, the results are used as the losses for the previous layer
 function multichannel_conv_transpose_losses(conv_layer)
     # storing all the necessary shapes
