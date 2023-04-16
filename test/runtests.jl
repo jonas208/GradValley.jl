@@ -60,8 +60,8 @@ Note that these optimizers makes absolutely no sense, they are only intended to 
 """
 function test_optimizer_initializations(model)
     optim_1 = SGD(model, 0.01; weight_decay=0.1, dampening=0.1, maximize=false)
-    optim_2 = MSGD(model, 0.01; momentum=0.90, weight_decay=nothing, dampening=0.00, maximize=true)
-    optim_3 = Nesterov(model, 0.01; momentum=0.90, weight_decay=0.1, dampening=0.1, maximize=false)
+    optim_2 = MSGD(model, 0.01; momentum=0.90, weight_decay=0.00, dampening=0.10, maximize=true)
+    optim_3 = Nesterov(model, 0.01; momentum=0.90, weight_decay=0.1, dampening=0.00, maximize=false)
 
     return optim_1, optim_2, optim_3
 end
