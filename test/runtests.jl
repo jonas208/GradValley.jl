@@ -33,7 +33,8 @@ function test_layer_initializations()
     submodel_fcs = SequentialContainer([fully_connected_1, fully_connected_2, fully_connected_3, softmax, fully_connected_4])
     sc = SequentialContainer([submodel_feature_extractor, submodel_fcs])
     # test initialization of GraphContainers
-    f(layers, x, y) = forward(layers[1], x) .+ y ./ y .* y .* 2 .+ 5 .- 5 .- y # .^ 2
+    f(layers, x, y) = (1 .- (2.5 .+ (5 ./ (10 .* forward(layers[1], x) .+ y .- y .* y ./ y .+ 5 .- 2.5)))) # .* 10 .^ 2
+    # f(layers, x, y) = forward(layers[1], x) .* 10 
     model = GraphContainer(f, [sc])
     # test the summary function
     println(summarize_model(model)[1])
