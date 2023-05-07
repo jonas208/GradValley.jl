@@ -30,12 +30,11 @@ function test_layer_initializations()
     submodel_convs = SequentialContainer([conv, depthwise_conv, conv_transpose, identity])
     submodel_pools = SequentialContainer([max_pool, avg_pool, adaptive_max_pool, adaptive_avg_pool])
     submodel_feature_extractor = SequentialContainer([submodel_convs, batch_norm, submodel_pools, flatten])
-    submodel_fcs = SequentialContainer([fully_connected_1, fully_connected_2, fully_connected_3, softmax, fully_connected_4])
+    submodel_fcs = SequentialContainer([fully_connected_1, fully_connected_2, fully_connected_3, fully_connected_4])
     sc = SequentialContainer([submodel_feature_extractor, submodel_fcs])
     # test initialization of GraphContainers
-    f(layers, x, y) = (1 .- (2.5 .+ (5 ./ (10 .* forward(layers[1], x) .+ y .- y .* y ./ y .+ 5 .- 2.5)))) # .* 10 .^ 2
-    # f(layers, x, y) = forward(layers[1], x) .* 10 
-    model = GraphContainer(f, [sc])
+    f(layers, x, y, z) = (1 .- (2.5 .+ (5 ./ (y .- forward(layers[2], forward(layers[1], x)) .+ y .- y .* y ./ y .+ 5 .- 2.5)))) * ((((((z + 2) - 3) * 2) / 3) ^ 3)) # .^ 2 (((((z + 2) - 3) * 2) / 3) ^ 3)
+    model = GraphContainer(f, [sc, softmax])
     # test the summary function
     println(summarize_model(model)[1])
 
@@ -84,9 +83,9 @@ function simulate_training(model, data_loader, optim_1, optim_2, optim_3)
     for (batch, (images_batch, targets_batch)) in enumerate(data_loader)
         # test forward pass (only affects batchnorm: in training mode and in test mode)
         testmode!(model)
-        predictions_batch_test_mode = forward(model, images_batch, rand(size(images_batch)[1], 20))
+        predictions_batch_test_mode = forward(model, images_batch, rand(size(images_batch)[1], 20), 5)
         trainmode!(model)
-        predicitions_batch = forward(model, images_batch, rand(size(images_batch)[1], 20))
+        predicitions_batch = forward(model, images_batch, rand(4), 5)
         zero_gradients(model)
         # test loss functions
         loss, derivative_loss = mae_loss(predicitions_batch, targets_batch)
