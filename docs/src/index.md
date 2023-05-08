@@ -10,22 +10,32 @@ To get started, see [Installation](@ref) and [Getting Started](@ref). After that
     This software package and its documentation are in an early stage of development and are therefore still a beta version. If you are missing certain features, see [Current Limitations](@ref) for planned future features, or directly share your ideas in the [discussion](https://github.com/jonas208/GradValley.jl/discussions) section of the GitHub [repository](https://github.com/jonas208/GradValley.jl).
 
 !!! warning
-    **This documentation is currently under construction. It currently does not claim to be complete, it is clear that some entries and information are still missing. It is currently being continuously adapted and improved.**
+    **This documentation is in a beta version. It currently does not claim to be complete, it is clear that some entries and information are still missing. It is currently being continuously adapted and improved.**
+
+## Why GradValley.jl
+- **Intuitive Model Building:** Model building is normally done using [Containers](@ref). With [Containers](@ref), large models can be broken down into smaller components (e.g. ResNets in ResBlocks), which in turn can then be easily combined into one large model. See the [ResNets example](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) in the [Tutorials and Examples](@ref) section.
+- **Flexible:** [Containers](@ref) behave like layers, so you can use containers in containers in containers... (arbitrary nesting allowed). GraphContainer's automatic differentiation allows defining your own computational graph in a function, which then can be automatically differentiated during backward pass (using reverse mode AD, aka [Backpropagation](https://en.wikipedia.org/wiki/Backpropagation)).
+- **Switching from Python to Julia:** GradValley keeps the in the Python world established array order NCHW (see [Array structure convention](@ref)). For example, migration from large pre-trained models from PyTorch to Julia is thus simplified. Beyond that, the behavior of the layers is strongly oriented towards PyTorch, e.g. the algorithm behind adaptive pooling. 
+- **100% Julia:** Julia's biggest advantage compared to Python is speed. This allows you to easily extend existing Julia packages yourself. Extending python packages is, at least if they use e.g. C code in the backend, much more difficult. 
+- **Julia's environment**: The Julia community developed a lot of awesome packages. Julia packages have the advantage that they can be usually always used very well together. For example, take a look at [Flux.jl](https://github.com/FluxML/Flux.jl), [Plots.jl](https://github.com/JuliaPlots/Plots.jl), [MLJ.jl](https://github.com/alan-turing-institute/MLJ.jl), [DifferentialEquations.jl](https://github.com/SciML/DifferentialEquations.jl) or [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl).
+- **See for yourself:** To get started, see [Installation](@ref) and [Getting Started](@ref). After that, you could look at the [Tutorials and Examples](@ref) section. Or directly start using a [pre-trained model](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/), for exmaple a [pre-trained ResNet](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/).
 
 ## About
 A while ago I started looking into machine learning. The topic fascinated me from the beginning, so I wanted to gain a deeper understanding of the way such models work. In my opinion, the best way to do this is to write your own small software package for machine learning and not just blindly use one of the big, established frameworks such as PyTorch or TensorFlow. The Julia programming language was my choice because of its popularity in academia and its very good performance compared to pure Python, which is after all very popular in the world of artificial intelligence.
-The product of this work is this module called GradValley.jl with which various current neural networks (e.g. CNNs) can be implemented easily and intuitively.
+The product of this work is this package called GradValley.jl with which various current neural networks (e.g. CNNs) can be implemented easily and intuitively.
 
-### Array structure convention:
+### Array structure convention
 The order used in GradValley for processing images (or similar data) is NCHW, where N is the batch dimension, C is the channel dimension, H is the vertical and W is the horizontal size of the image. In this regard, GradValley differs from some other deep learning packages in Julia and is similar to PyTorch instead. This makes the migration of pre-trained models from PyTorch or from the Python world in general to GradValley much easier.
 
-### Explanation of the name "GradValley":
+### Explanation of the name "GradValley"
 When optimizing the weights of a machine learning model, an attempt is always made to find the best possible error minimum. The derivatives, i.e. the gradients, of the error function in relation to the weights are required for this. So the goal is to find the "valley" of the error using the gradients ("grad" stands for gradient). That's why it's called GradValley.
 
 ### Current Limitations
-Due to the relatively early development status of this software, no GPU support is currently offered. 
+Due to the relatively early development status of this software, no GPU support is currently offered. Because GradValley saves some information for the backward pass (e.g. gradients) directly in the layers, it's often not possible to use one layer multiple times in a model (becausee in such cases, the information for the backward pass would be overwritten.) However, using one layer multiple times in a model actually never happens.
 The following features are planned and likely to be added in the future:
 - more predefined activation function, loss functions and optimizers
+- allowing more types (currently, Float64 is at some points the only allowed type for arrays) 
+- GPU support (Nvidia CUDA)
 
 ## GitHub Repository
 In the GitHub [repository of GradValley.jl](https://github.com/jonas208/GradValley.jl), you can find e.g. the source code, the source of this documentation and information about continues testing and it's code coverage. The repo is also the place to ask questions and share your thoughts about this project.
