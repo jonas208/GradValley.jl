@@ -1,6 +1,6 @@
-# include("GradValley/GradValley.jl")
-# using .GradValley, .GradValley.Layers, .GradValley.Optimization, .GradValley.Functional
-using GradValley, GradValley.Layers, GradValley.Optimization, GradValley.Functional
+include("GradValley/GradValley.jl")
+using .GradValley, .GradValley.Layers, .GradValley.Optimization, .GradValley.Functional
+# using GradValley, GradValley.Layers, GradValley.Optimization, GradValley.Functional
 using Test
 
 """
@@ -33,10 +33,20 @@ function test_layer_initializations()
     submodel_fcs = SequentialContainer([fully_connected_1, fully_connected_2, fully_connected_3, fully_connected_4])
     sc = SequentialContainer([submodel_feature_extractor, submodel_fcs])
     # test initialization of GraphContainers
-    f(layers, x, y, z) = (1 .- (2.5 .+ (5 ./ (y .- forward(layers[2], forward(layers[1], x)) .+ y .- y .* y ./ y .+ 5 .- 2.5)))) * (((((((z + 2) - 3) * 2) / 3) ^ 3)) + ((2 + z)*(5 - z)*(3 / z)*(4 * z)*(5 ^ z))) # .^ 2 
+    f(layers, x, y, z) = (1 .- (2.5 .+ (5 ./ (y .- forward(layers[2], forward(layers[1], x)) .* y .^ y .+ y .- y .* y ./ y .+ 5 .- 2.5)))) * (((((((z + 2) - 3) * 2) / 3) ^ 3)) + ((2 + z)*(5 - z)*(3 / z)*(4 * z)*(5 ^ z))) # .^ 2 
     model = GraphContainer(f, [sc, softmax])
     # test the summary function
     println(summarize_model(model)[1])
+    println(submodel_convs)
+    println(conv)
+    # test some indexing 
+    submodel_convs[1]
+    submodel_convs[1:3]
+    [layer for layer in submodel_convs]
+    submodel_convs[begin]
+    submodel_convs[end]
+    size(submodel_convs)
+    length(submodel_convs)
 
     return model
 end
