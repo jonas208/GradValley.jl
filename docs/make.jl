@@ -15,7 +15,7 @@ makedocs(
     sitename = "GradValley.jl",
     format = Documenter.HTML(),
     modules = [GradValley],
-    pages = ["Home" => "index.md", "Installation" => "installation.md", "Getting Started" => "getting_started.md", "Reference" => "reference.md", "Tutorials and Examples" => "tutorials_and_examples.md", "(Pre-Trained) Models" => "(pre-trained)_models.md", "Learning" => "learning.md"]
+    pages = ["Home" => "index.md", "Installation" => "installation.md", "Getting Started" => "getting_started.md", "Reference" => "reference.md", "Tutorials and Examples" => "tutorials_and_examples.md", "(Pre-Trained) Models" => "(pre-trained)_models.md", "Saving and Loading" =>"saving_and_loading.md", "Learning" => "learning.md"]
 )
 
 #=
