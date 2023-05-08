@@ -1,6 +1,6 @@
-include("GradValley/GradValley.jl")
-using .GradValley, .GradValley.Layers, .GradValley.Optimization, .GradValley.Functional
-# using GradValley, GradValley.Layers, GradValley.Optimization, GradValley.Functional
+# include("GradValley/GradValley.jl")
+# using .GradValley, .GradValley.Layers, .GradValley.Optimization, .GradValley.Functional
+using GradValley, GradValley.Layers, GradValley.Optimization, GradValley.Functional
 using Test
 
 """
