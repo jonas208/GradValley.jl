@@ -26,7 +26,7 @@ function get_input_position(output_position::Tuple, stride::Tuple)
 end
 
 # returns the shape of an output from a pooling- or convolution-operation
-function calculate_output_shape(input_height::Int, input_width::Int, kernel_height::Int, kernel_width::Int; stride::Tuple=(1, 1), padding::Tuple=(0, 0), dilation::Tuple=(1, 1)) # dilation::Tuple{Int, Int}
+function calculate_output_shape(input_height::Integer, input_width::Integer, kernel_height::Integer, kernel_width::Integer; stride::NTuple{2, Integer}=(1, 1), padding::NTuple{2, Integer}=(0, 0), dilation::NTuple{2, Integer}=(1, 1))
     output_height = (input_height + 2 * padding[1] - dilation[1] * (kernel_height - 1) - 1) / stride[1] + 1
     output_width = (input_width + 2 * padding[2] - dilation[2] * (kernel_width - 1) - 1) / stride[2] + 1
 
@@ -61,6 +61,7 @@ function get_iters_without_at_dim(size_tuple, dim)
     return iterators
 end
 
+#=
 # calculates the sum along a specific dim (removes this dimension in the output),
 # negative dim starts counting at the end of all dimensions, so dim=-1 for example is the last dimension
 function dim_sum(input; dim=1)
@@ -91,6 +92,7 @@ function dim_sum(input; dim=1)
     
     return output
 end
+=#
 
 # internal function for adaptive pooling, returns a list of ranges containing the indices for reading the input array with the correct pooling kernels/windows
 function get_in_indices(in_len, out_len)

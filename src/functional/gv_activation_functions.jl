@@ -1,74 +1,127 @@
 #=
 Activation functions: Forward & Backward (their derivatives)
 All functions take an array (nd, number of dimensions doesn't matter) and return a new array with the modified values
-(The given array will not be modified)
+(The given input array will not be modified)
 The prefix "d_" stands for the derivative (of the activation function)
 =#
 
-# appplies a element-wise relu activation on a copy of inputs
-function relu(inputs::Array)
-    outputs = copy(inputs)
-    # for (index, value) in enumerate(outputs)
-    for index in eachindex(outputs)
-        value = outputs[index]
-        if value < 0
-            outputs[index] = 0
-        end
-    end
+# calculate the element-wise relu activation 
+function relu(inputs::AbstractArray)
     # outputs = max.(0, inputs)
-
-    return outputs
-end
-
-# appplies the element-wise derivative of relu activation on a copy of inputs
-function d_relu(inputs::Array)
-    outputs = copy(inputs)
-    # for (index, value) in enumerate(outputs)
+    outputs = similar(inputs)
+    typed_zero = zero(eltype(inputs))
     for index in eachindex(outputs)
-        value = outputs[index]
+        value = inputs[index]
         if value < 0
-            outputs[index] = 0
+            outputs[index] = typed_zero
         else
-            outputs[index] = 1
+            outputs[index] = value
         end
     end
 
     return outputs
 end
 
-# appplies a element-wise sigmoid activation on a copy of inputs
-function sigmoid(inputs::Array)
-    outputs = copy(inputs)
-    # for (index, value) in enumerate(outputs)
-    # sig(x) = 1 / (1 + exp(-x))
-    # outputs = map(sig, outputs)
+# calculate the element-wise relu activation 
+function relu(outputs::AbstractArray, inputs::AbstractArray)
+    typed_zero = zero(eltype(outputs))
     for index in eachindex(outputs)
-        value = outputs[index]
+        value = inputs[index]
+        if value < 0
+            outputs[index] = typed_zero
+        else
+            outputs[index] = value
+        end
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of relu activation 
+function d_relu(inputs::AbstractArray)
+    outputs = similar(inputs)
+    typed_zero = zero(eltype(inputs))
+    typed_one = one(eltype(inputs))
+    for index in eachindex(outputs)
+        value = inputs[index]
+        if value < 0
+            outputs[index] = typed_zero
+        else
+            outputs[index] = typed_one
+        end
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of relu activation 
+function d_relu(outputs::AbstractArray, inputs::AbstractArray)
+    typed_zero = zero(eltype(outputs))
+    typed_one = one(eltype(outputs))
+    for index in eachindex(outputs)
+        value = inputs[index]
+        if value < 0
+            outputs[index] = typed_zero
+        else
+            outputs[index] = typed_one
+        end
+    end
+
+    return outputs
+end
+
+# calculate the element-wise sigmoid activation 
+function sigmoid(inputs::AbstractArray)
+    # sig(x) = 1 / (1 + exp(-x))
+    # outputs = map(sig, inputs)
+    outputs = similar(inputs)
+    for index in eachindex(outputs)
+        value = inputs[index]
         outputs[index] = 1 / (1 + exp(-value))
     end
 
     return outputs
 end
 
-# appplies the element-wise derivative of sigmoid activation on a copy of inputs
-function d_sigmoid(inputs::Array)
-    outputs = copy(inputs)
-    sig(x) = 1 / (1 + exp(-x))
-    # for (index, value) in enumerate(outputs)
+# calculate the element-wise sigmoid activation 
+function sigmoid(outputs::AbstractArray, inputs::AbstractArray)
     for index in eachindex(outputs)
-        value = outputs[index]
+        value = inputs[index]
+        outputs[index] = 1 / (1 + exp(-value))
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of sigmoid activation 
+function d_sigmoid(inputs::AbstractArray)
+    outputs = similar(inputs)
+    sig(x) = 1 / (1 + exp(-x))
+    for index in eachindex(outputs)
+        value = inputs[index]
         outputs[index] = sig(value) * (1 - sig(value))
     end
 
     return outputs
 end
 
-# appplies the element-wise derivative of tanh activation on a copy of inputs
-function gv_tanh(inputs::Array)
-    #=
-    outputs = copy(inputs)
+# calculate the element-wise derivative of sigmoid activation 
+function d_sigmoid(outputs::AbstractArray, inputs::AbstractArray)
+    sig(x) = 1 / (1 + exp(-x))
     for index in eachindex(outputs)
-        value = outputs[index]
+        value = inputs[index]
+        outputs[index] = sig(value) * (1 - sig(value))
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of tanh activation 
+function gv_tanh(inputs::AbstractArray)
+    #=
+    outputs = similar(inputs)
+    for index in eachindex(outputs)
+        value = inputs[index]
         outputs[index] = tanh(value)
     end
     =#
@@ -77,13 +130,31 @@ function gv_tanh(inputs::Array)
     return outputs
 end
 
-# DEPRECTED: there is no further tanh function because Julia already has a built-in tanh function
-# appplies the element-wise derivative of tanh activation on a copy of inputs
-function d_tanh(inputs::Array)
-    outputs = copy(inputs)
-    # for (index, value) in enumerate(outputs)
+# calculate the element-wise derivative of tanh activation 
+function gv_tanh(outputs::AbstractArray, inputs::AbstractArray)
     for index in eachindex(outputs)
-        value = outputs[index]
+        value = inputs[index]
+        outputs[index] = tanh(value)
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of tanh activation 
+function d_tanh(inputs::AbstractArray)
+    outputs = similar(inputs)
+    for index in eachindex(outputs)
+        value = inputs[index]
+        outputs[index] = 1 - tanh(value)^2
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of tanh activation 
+function d_tanh(outputs::AbstractArray, inputs::AbstractArray)
+    for index in eachindex(outputs)
+        value = inputs[index]
         outputs[index] = 1 - tanh(value)^2
     end
 

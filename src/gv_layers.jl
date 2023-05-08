@@ -5,7 +5,7 @@ gv_functional = Functional
 
 # export all layers and nearly all functions
 export Conv, DepthwiseConv, ConvTranspose, Fc, BatchNorm2d, MaxPool, AdaptiveMaxPool, AvgPool, AdaptiveAvgPool, Reshape, Softmax, Identity, SequentialContainer, GraphContainer
-export forward, backward, zero_gradients, trainmode!, testmode!, summarize_model
+export forward, backward, zero_gradients, trainmode!, testmode!, summarize_model, clean_module_from_backward_information!
 
 #=
 Documentation for functions with many but very similar methods
@@ -121,10 +121,12 @@ function general_activation_function_init(activation_function::Union{Nothing, St
         new_activation_function = gv_functional.sigmoid
         df = gv_functional.d_sigmoid
         gain = 1
+    #= DEPRECATED: softmax is now an additional layer 
     elseif activation_function == "softmax"
         new_activation_function = gv_functional.softmax
         df = gv_functional.d_softmax
         gain = 1
+    =#
     elseif activation_function == "tanh"
         new_activation_function = gv_functional.gv_tanh
         df = gv_functional.d_tanh
@@ -202,8 +204,8 @@ This layer currently (!) only accepts Float64 array inputs.
 - Weight: ``(C_{out}, \frac{C_{in}}{groups}, H_{w}, W_{w})``
 - Bias: ``(C_{out}, )``
 - Output: ``(N, C_{out}, H_{out}, W_{out})``, where 
-    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1)}{stride[1]}} + 1``
-    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1)}{stride[2]}} + 1``
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1) - 1}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1) - 1}{stride[2]}} + 1``
 
 # Useful Fields/Variables
 - `kernels::Array{Float64, 4}`: the learnable weights of the layer
@@ -255,6 +257,7 @@ mutable struct Conv
     previous_losses::Union{Nothing, Array{Float64, 4}} # losses for the previous layer, can be nothing
     gradients::Array{Float64, 4} # gradients of the kernels/weights
     bias_gradients::Vector{Float64}
+    # activation_function_gradients::Union{Nothing, Array{Float64, 4}} # can be nothing 
     # custom constructor
     function Conv(in_channels::Int, out_channels::Int, kernel_size::Tuple{Int, Int}; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), groups::Int=1, activation_function::Union{Nothing, String}=nothing, init_mode::String="default_uniform", use_bias::Bool=true)
         # setting up the activation function
@@ -280,6 +283,7 @@ mutable struct Conv
         outputs = nothing
         losses = nothing
         previous_losses = nothing
+        # activation_function_gradients = nothing
 
         # create new instance/object
         new(in_channels, 
@@ -301,7 +305,8 @@ mutable struct Conv
             losses,
             previous_losses,
             gradients,
-            bias_gradients
+            bias_gradients,
+            # activation_function_gradients
         )
     end
 end
@@ -329,8 +334,8 @@ This layer currently (!) only accepts Float64 array inputs.
 - Weight: ``(C_{out}, \frac{C_{in}}{groups}, H_{w}, W_{w})``, where ``groups = in\_channels``
 - Bias: ``(C_{out}, )``
 - Output: ``(N, C_{out}, H_{out}, W_{out})``, where 
-    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1)}{stride[1]}} + 1``
-    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1)}{stride[2]}} + 1``
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1) - 1}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1) - 1}{stride[2]}} + 1``
 
 # Useful Fields/Variables
 - `kernels::Array{Float64, 4}`: the learnable weights of the layer
@@ -381,6 +386,7 @@ mutable struct DepthwiseConv
     previous_losses::Union{Nothing, Array{Float64, 4}} # losses for the previous layer, can be nothing
     gradients::Array{Float64, 4} # gradients of the kernels/weights
     bias_gradients::Vector{Float64}
+    # activation_function_gradients::Union{Nothing, Array{Float64, 4}} # can be nothing 
     # custom constructor
     function DepthwiseConv(in_channels::Int, out_channels::Int, kernel_size::Tuple{Int, Int}; stride::Tuple{Int, Int}=(1, 1), padding::Tuple{Int, Int}=(0, 0), dilation::Tuple{Int, Int}=(1, 1), activation_function::Union{Nothing, String}=nothing, init_mode::String="default_uniform", use_bias::Bool=true) # init_mode::String="kaiming", dilation::Tuple{Int, Int}
         # setting up the number of groups and check the validity of out_channels
@@ -414,6 +420,7 @@ mutable struct DepthwiseConv
         outputs = nothing
         losses = nothing
         previous_losses = nothing
+        # activation_function_gradients = nothing
 
         # create new instance/object
         new(in_channels, 
@@ -435,7 +442,8 @@ mutable struct DepthwiseConv
             losses,
             previous_losses,
             gradients,
-            bias_gradients
+            bias_gradients,
+            # activation_function_gradients
         )
     end
 end
@@ -445,19 +453,7 @@ end
 # forward function for a convolution layer (Conv & DepthwiseConv)
 # Shape of inputs: (batch_size, in_channels, height, width)
 function forward(conv_layer::Union{Conv, DepthwiseConv}, inputs::Array{Float64, 4}) # conv_layer::Conv
-    # inputs = copy(inputs)
-    conv_layer.inputs = inputs
-    outputs_no_activation, inputs_padded = gv_functional.multichannel_conv(inputs, conv_layer.kernels, conv_layer.bias, conv_layer.use_bias, stride=conv_layer.stride, padding=conv_layer.padding, dilation=conv_layer.dilation, groups=conv_layer.groups)
-    if !(isnothing(conv_layer.activation_function))
-        outputs = conv_layer.activation_function(outputs_no_activation)
-    else
-        outputs = outputs_no_activation
-    end
-
-    # saving the results of forward computation in the layer struct (mutable)
-    conv_layer.outputs_no_activation = outputs_no_activation
-    conv_layer.outputs = outputs
-    conv_layer.inputs_padded = inputs_padded
+    outputs = gv_functional.convolution2d!(conv_layer, inputs)
 
     return outputs
 end
@@ -471,7 +467,8 @@ end
 # compute previous losses function for a convolution layer (Conv & DepthwiseConv)
 # computes the losses for the previous layer
 function compute_previous_losses(conv_layer::Union{Conv, DepthwiseConv}) # conv_layer::Conv
-    conv_layer.previous_losses = gv_functional.multichannel_conv_losses(conv_layer)
+    # conv_layer.previous_losses = gv_functional.multichannel_conv_losses(conv_layer)
+    conv_layer.previous_losses = gv_functional.convolution2d_data_backward!(conv_layer)
 end
 
 # compute gradients function for a convolution layer (Conv & DepthwiseConv)
@@ -479,7 +476,6 @@ end
 # conv_layer.losses must have a valid content (not nothing), usally losses were given by calling save_current_losses() before
 function compute_gradients(conv_layer::Union{Conv, DepthwiseConv}) # conv_layer::Conv
     conv_layer.gradients += gv_functional.multichannel_conv_gradients(conv_layer)
-    # conv_layer.gradients = gv_functional.multichannel_conv_gradients(conv_layer)
     if conv_layer.use_bias
         conv_layer.bias_gradients = gv_functional.multichannel_conv_bias_gradients(conv_layer)
     end
@@ -488,8 +484,6 @@ end
 # zero gradients function for a convolution layer (Conv & DepthwiseConv)
 # resets the gradients of the given layer
 function zero_gradients(conv_layer::Union{Conv, DepthwiseConv}) # conv_layer::Conv
-    # println("reset grads")
-    # println(conv_layer.out_channels)
     conv_layer.gradients = zeros(size(conv_layer.kernels))
     conv_layer.bias_gradients = zeros(size(conv_layer.bias))
 end
@@ -599,7 +593,7 @@ mutable struct ConvTranspose
 
         # check if output padding has valid values
         if !(y_out_padding < y_stride || y_out_padding < y_dilation) || !(x_out_padding < x_stride || x_out_padding < x_dilation)
-            error("GradValley: ConvTranspose: output_padding must be smaller than either stride or dilation, but got invalid values: y_output_padding: $y_out_padding x_ou_padding: $x_out_padding y_stride: $y_stride x_stride: $x_stride y_dilation: $y_dilation x_dilation: $x_dilation")
+            error("GradValley: ConvTranspose: output_padding must be smaller than either stride or dilation, but got invalid values: y_output_padding: $y_out_padding x_output_padding: $x_out_padding y_stride: $y_stride x_stride: $x_stride y_dilation: $y_dilation x_dilation: $x_dilation")
         end
 
         # initialize kernels/weights
@@ -645,6 +639,7 @@ end
 # forward function for a transpose convolution layer (ConvTranspose)
 # Shape of inputs: (batch_size, in_channels, height, width)
 function forward(conv_layer::ConvTranspose, inputs::Array{Float64, 4})
+    #=
     # inputs = copy(inputs)
     conv_layer.inputs = inputs
     outputs_no_activation = gv_functional.multichannel_conv_transpose(inputs, conv_layer.kernels, conv_layer.bias, conv_layer.use_bias, stride=conv_layer.stride, padding=conv_layer.padding, output_padding=conv_layer.output_padding, dilation=conv_layer.dilation, groups=conv_layer.groups)
@@ -657,6 +652,8 @@ function forward(conv_layer::ConvTranspose, inputs::Array{Float64, 4})
     # saving the results of forward computation in the layer struct (mutable)
     conv_layer.outputs_no_activation = outputs_no_activation
     conv_layer.outputs = outputs
+    =#
+    outputs = gv_functional.deconvolution2d!(conv_layer, inputs)
 
     return outputs
 end
@@ -719,8 +716,8 @@ This layer currently (!) only accepts Float64 array inputs.
 # Shapes
 - Input: ``(N, C, H_{in}, W_{in})``
 - Output: ``(N, C, H_{out}, W_{out})``, where 
-    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (kernel\_size[1] - 1)}{stride[1]}} + 1``
-    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (kernel\_size[2] - 1)}{stride[2]}} + 1``
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1) - 1}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1) - 1}{stride[2]}} + 1``
 
 # Definition
 A multichannel 2D maximum pooling (disregarding batch dimension and activation function) can be described as:
@@ -861,8 +858,8 @@ This layer currently (!) only accepts Float64 array inputs.
 # Shapes
 - Input: ``(N, C, H_{in}, W_{in})``
 - Output: ``(N, C, H_{out}, W_{out})``, where 
-    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (kernel\_size[1] - 1)}{stride[1]}} + 1``
-    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (kernel\_size[2] - 1)}{stride[2]}} + 1``
+    - ``H_{out} = {\frac{H_{in} + 2 \cdot padding[1] - dilation[1] \cdot (H_w - 1) - 1}{stride[1]}} + 1``
+    - ``W_{out} = {\frac{W_{in} + 2 \cdot padding[2] - dilation[2] \cdot (W_w - 1) - 1}{stride[2]}} + 1``
 
 # Definition
 A multichannel 2D average pooling (disregarding batch dimension and activation function) can be described as:
@@ -1952,9 +1949,9 @@ julia> input = rand(32, 1, 28, 28)
 julia> output = forward(m, input)
 
 # indexing 
-julia> m[start] # returns the feature_extractor_part_1 submodule (SequentialContainer)
+julia> m[begin] # returns the feature_extractor_part_1 submodule (SequentialContainer)
 julia> m[end] # returns the softmax layer (Softmax)
-julia> m[start:end-1] # returns the entire model except the softmax layer (a new SequentialContainer is initialized and returned) 
+julia> m[begin:end-1] # returns the entire model except the softmax layer (a new SequentialContainer is initialized and returned) 
 
 # if a SequentialContainer contains BatchNorm layers (regardless of whether they are nested somewhere in a submodule or not), 
 # the mode of all these layers at once can be switched as follows
@@ -2450,5 +2447,27 @@ end
 # pretty-printing for all layers and containers 
 Base.show(io::IO, layer::Union{Conv, DepthwiseConv, ConvTranspose, Fc, BatchNorm2d, MaxPool, AdaptiveMaxPool, AvgPool, AdaptiveAvgPool, Reshape, Softmax, Identity}) = print(io, get_layer_summary(layer)[1])
 Base.show(io::IO, container::Union{SequentialContainer, GraphContainer}) = print(io, summarize_model(container)[1])
+
+"""
+    clean_module_from_backward_information!(container_or_layer)
+
+Clean a container (so all the layers it contains) or a single layer from backward pass information (e.g. gradients).
+It is recommended to run this function on a model which should be saved to file.
+```
+"""
+function clean_module_from_backward_information! end
+
+function clean_module_from_backward_information!(layer::all_layers)
+    for property_name in propertynames(layer)
+        if property_name != :activation_function
+            try setfield!(layer, property_name, nothing) catch end
+        end
+    end
+end
+
+function clean_module_from_backward_information!(model::Union{SequentialContainer, GraphContainer})
+    clean_module_from_backward_information!.(extract_layers(model, []))
+    println("CLEANED")
+end
 
 end # end of module "Layers"

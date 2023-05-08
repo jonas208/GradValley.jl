@@ -2,6 +2,7 @@
 Pooling-Operations: Forward & Backward
 =#
 
+#=
 # Performing a single channel pooling operation (max or avg)
 # Shape of input: (height, width)
 # kernel_size, stride and padding must be always given as tuples of length 2
@@ -153,6 +154,7 @@ function multichannel_pool_old(inputs::Array{Float64, 4}, kernel_size::Tuple{Int
 
     return output, positions, inputs
 end
+=#
 
 # Performing a multichannel maximum pooling (on a hole batch)
 # Shape of input: (batch_size, in_channels, height, width)
