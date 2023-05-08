@@ -8,11 +8,9 @@ The more detailed version of this tutorial can be found in this section of the d
 Important Note:
 It is heavily recommended to run this file, and any other files using GradValley, with multiple threads.
 Using multiple threads can make training much faster.
-To do this, use the ```-t``` option when running a julia script in terminal/PowerShell/command line/etc.
+To do this, use the -t option when running a julia script in terminal/PowerShell/command line/etc.
 If your CPU has 24 threads, for example, then run:
-```
 julia -t 24 ./MNIST_with_LeNet5.jl
-```
 The specified number of threads should match the number of threads your CPU provides.
 =#
 
