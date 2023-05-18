@@ -74,10 +74,11 @@ The specified number of threads should match the number of threads your CPU prov
 Image: example_image1.jpg: Predicted class: "castle" with score of 99.2%
 Image: example_image2.jpg: Predicted class: "llama" with score of 81.6%
 ```
+**We can see that both predicted classes are correct!**
+
 **example_image1.jpg**
 ![The first example image used by load_ResNets_make_prediction.jl](./assets/example_image1.jpg)
 **example_image2.jpg**
 ![The second example image used by load_ResNets_make_prediction.jl](./assets/example_image2.jpg)
-**We can see that both predicted classes are correct!**
 
 What's next? Maybe try changing the script to print out the top 5 categories and not just the top 1.
