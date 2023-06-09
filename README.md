@@ -7,14 +7,14 @@
 [![Runtests](https://github.com/jonas208/GradValley.jl/actions/workflows/Runtests.yml/badge.svg)](https://github.com/jonas208/GradValley.jl/actions/workflows/Runtests.yml)
 [![codecov](https://codecov.io/github/jonas208/GradValley.jl/branch/main/graph/badge.svg?token=DJE8BZL8XR)](https://codecov.io/github/jonas208/GradValley.jl)
 
-GradValley.jl is a new lightweight module for deep learning written in 100% Julia. It offers a high level interface for model building and training. It is completely independent from other machine learning packages like [Flux](https://github.com/FluxML/Flux.jl), [Knet](https://github.com/denizyuret/Knet.jl), [NNlib](https://github.com/FluxML/NNlib.jl) or [NNPACK](https://github.com/Maratyszcza/NNPACK) (see [dependencies](https://github.com/jonas208/GradValley.jl/blob/main/Project.toml)). It is based on Julia's standard array type and needs no additional tensor type. <br>
-GradValley.jl's backend is written "human-friendly". So if you're looking into how exactly such deep learning algorithms work, looking at the [source code](https://github.com/jonas208/GradValley.jl/tree/main/src) could also be a good learning resource. See [this page in documentation](https://jonas208.github.io/GradValley.jl/learning/) for further information. <br>
-To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blob/main/README.md#installation) and [Getting Started](https://github.com/jonas208/GradValley.jl/blob/main/README.md#getting-started).
+GradValley.jl is a new lightweight package for Deep Learning written in 100% Julia. GradValley offers a high level interface for flexible model building and training. It is completely independent of other machine learning packages like [Flux](https://github.com/FluxML/Flux.jl), [Knet](https://github.com/denizyuret/Knet.jl), [NNlib](https://github.com/FluxML/NNlib.jl) or [NNPACK](https://github.com/Maratyszcza/NNPACK) (see [dependencies](https://github.com/jonas208/GradValley.jl/blob/main/Project.toml)). It is based on Julia’s standard array type and needs no additional tensor type. <br> 
+To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blob/main/README.md#installation) and [Getting Started](https://github.com/jonas208/GradValley.jl/blob/main/README.md#getting-started). After that, you could look at the [Tutorials and Examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) section in the [documentation](). Or directly start using a [pre-trained model](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/), for example a [pre-trained ResNet](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/#(Pre-Trained)-Models).
 
-The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
-Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
+The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ 
 
-#### Note: This software package and its documentation are in an early stage of development and are therefore still a beta version. Some important features which may be missing at the moment will be added over time.
+Because GradValley is just 100% high level Julia code, the implemented backend algorithms powering Deep Learning (e.g. convolution) are pretty nice to read. So if you're looking into how exactly such Deep Learning algorithms work, looking at the [source code](https://github.com/jonas208/GradValley.jl/tree/main/src) (and at it's documentation in [Reference](https://jonas208.github.io/GradValley.jl/reference/)) could also be a helpful learning resource. See [Learning](https://jonas208.github.io/GradValley.jl/learning/) for further learning resources. 
+
+#### Note: This software package and its documentation are in an early stage of development and are therefore still a beta version. Some features which may be missing at the moment will be added over time.
 
 # Installation
 Use Julias's package manager in the REPL:
@@ -29,7 +29,7 @@ Pkg.add(url="https://github.com/jonas208/GradValley.jl")
 GradValley.jl is supported on Julia 1.7 and later. It is tested on Julia 1.7 and on the latest stable release.
 
 # Getting Started
-This example shows the basic workflow on model building and how to use loss functions and optimizers to train the model:
+This example shows the basic workflow on model building (using [containers](https://jonas208.github.io/GradValley.jl/reference/#Containers)) and how to use loss functions and optimizers to train the model:
 ```julia
 using GradValley
 using GradValley.Layers # The "Layers" module provides all the building blocks for creating a model.
@@ -70,7 +70,7 @@ backward(model, derivative_loss) # computing gradients
 step!(optimizer) # making a optimization step with the calculated gradients and the optimizer
 ```
 
-# Documentation, Tutorials and Examples
+# Documentation, Tutorials and Examples, etc.
 - The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
 - Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
 - Information about [pre-trained models](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/) can be found there too.
