@@ -70,6 +70,9 @@ backward(model, derivative_loss) # computing gradients
 step!(optimizer) # making a optimization step with the calculated gradients and the optimizer
 ```
 
+# Why GradValley.jl?
+See the [Why GradValley.il](https://jonas208.github.io/GradValley.jl/#Why-GradValley.jl) paragraph on the [start page of the documentation](https://jonas208.github.io/GradValley.jl/).
+
 # Documentation, Tutorials and Examples, etc.
 - The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
 - Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
