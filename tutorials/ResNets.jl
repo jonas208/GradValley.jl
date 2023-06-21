@@ -7,7 +7,7 @@ This script is also used by the pre-trained ResNets found in the pre-trained mod
 
 Important Note:
 It is heavily recommended to run this file (or the file in which you inlcude ResNets.jl), and any other files using GradValley, with multiple threads.
-Using multiple threads can make training much faster.
+Using multiple threads can make training and calculating predictions much faster.
 To do this, use the -t option when running a julia script in terminal/PowerShell/command line/etc.
 If your CPU has 24 threads, for example, then run:
 julia -t 24 ./ResNets.jl
