@@ -103,9 +103,9 @@ function batchNorm2d_losses(batchnorm_layer)
     =#
     out_losses::Array{Float64, 4} = batchnorm_layer.losses
     if batchnorm_layer.df != 1
-        activation_function_gradients = batchnorm_layer.df(batchnorm_layer.outputs, batchnorm_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-        out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
-        # out_losses = out_losses .* batchnorm_layerr.df(batchnorm_layer.outputs_no_activation)
+        # activation_function_gradients = batchnorm_layer.df(batchnorm_layer.outputs, batchnorm_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+        # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        out_losses = out_losses .* batchnorm_layer.df(batchnorm_layer.outputs_no_activation)
     end
 
     #=
@@ -163,9 +163,9 @@ function batchNorm2d_gradients(batchnorm_layer)
         =#
         out_losses::Array{Float64, 4} = batchnorm_layer.losses
         if batchnorm_layer.df != 1
-            activation_function_gradients = batchnorm_layer.df(batchnorm_layer.outputs, batchnorm_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-            out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
-            # out_losses = out_losses .* batchnorm_layerr.df(batchnorm_layer.outputs_no_activation)
+            # activation_function_gradients = batchnorm_layer.df(batchnorm_layer.outputs, batchnorm_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+            # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+            out_losses = out_losses .* batchnorm_layer.df(batchnorm_layer.outputs_no_activation)
         end
         
         # for channel in 1:channels

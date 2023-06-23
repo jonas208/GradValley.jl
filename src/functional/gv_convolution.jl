@@ -227,8 +227,9 @@ function convolution2d_data_backward!(conv_layer)
     # calculating the derivative of the out_losses
     out_losses = conv_layer.losses
     if conv_layer.df != 1
-        activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-        out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        # activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+        # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
     end
     
     return convolution2d_data_backward(out_losses, conv_layer.kernels, size(conv_layer.inputs)[3:4], stride=conv_layer.stride, padding=conv_layer.padding, output_padding=(0, 0), dilation=conv_layer.dilation, groups=conv_layer.groups)
@@ -247,9 +248,9 @@ function multichannel_conv_gradients(conv_layer)
     # calculating the derivative of the out_losses
     out_losses::Array{Float64, 4} = conv_layer.losses
     if conv_layer.df != 1
-        activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-        out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
-        # out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+        # activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+        # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
     end
 
     gradients::Array{Float64, 4} = zeros(out_channels, in_channels_kernels, kernel_height, kernel_width)
@@ -314,9 +315,9 @@ function multichannel_conv_bias_gradients(conv_layer)
     # calculating derivative of the activation function
     out_losses::Array{Float64, 4} = conv_layer.losses
     if conv_layer.df != 1
-        activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-        out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
-        # out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+        # activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+        # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
     end
 
     bias_gradients::Vector{Float64} = conv_layer.bias_gradients
@@ -422,9 +423,9 @@ function multichannel_conv_transpose_losses(conv_layer)
     # calculating the derivative of the out_losses
     out_losses = conv_layer.losses
     if conv_layer.df != 1
-        activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-        out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
-        # out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+        # activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+        # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
     end
 
     # splitting up the hyperparameters per dimension
@@ -491,9 +492,9 @@ function multichannel_conv_transpose_gradients(conv_layer)
     # calculating the derivative of the out_losses
     out_losses = conv_layer.losses
     if conv_layer.df != 1
-        activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-        out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
-       #  out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+        # activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+        # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
     end
 
     # splitting up the hyperparameters per dimension
@@ -576,9 +577,9 @@ function multichannel_conv_transpose_bias_gradients(conv_layer)
     # calculating the derivative of the out_losses
     out_losses = conv_layer.losses
     if conv_layer.df != 1
-        activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
-        out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
-        # out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
+        # activation_function_gradients = conv_layer.df(conv_layer.outputs, conv_layer.outputs_no_activation) # outputs becomes activation_function_gradients (for allocating as little as possible)
+        # out_losses = activation_function_gradients .= (*).(out_losses, activation_function_gradients)
+        out_losses = out_losses .* conv_layer.df(conv_layer.outputs_no_activation)
     end
 
     # performing padding

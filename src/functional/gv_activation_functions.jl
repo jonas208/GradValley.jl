@@ -70,6 +70,66 @@ function d_relu(outputs::AbstractArray, inputs::AbstractArray)
     return outputs
 end
 
+# calculate the element-wise leaky relu activation 
+function leaky_relu(inputs::AbstractArray; negative_slope::Real=0.01)
+    outputs = similar(inputs)
+    for index in eachindex(outputs)
+        value = inputs[index]
+        if value >= 0
+            outputs[index] = value
+        else
+            outputs[index] = value * negative_slope
+        end
+    end
+
+    return outputs
+end
+
+# calculate the element-wise leaky relu activation 
+function leaky_relu(outputs::AbstractArray, inputs::AbstractArray; negative_slope::Real=0.01)
+    for index in eachindex(outputs)
+        value = inputs[index]
+        if value >= 0
+            outputs[index] = value
+        else
+            outputs[index] = value * negative_slope
+        end
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of leaky relu activation 
+function d_leaky_relu(inputs::AbstractArray; negative_slope::Real=0.01)
+    outputs = similar(inputs)
+    typed_one = one(eltype(inputs))
+    for index in eachindex(outputs)
+        value = inputs[index]
+        if value >= 0
+            outputs[index] = typed_one
+        else
+            outputs[index] = negative_slope
+        end
+    end
+
+    return outputs
+end
+
+# calculate the element-wise derivative of leaky relu activation 
+function d_leaky_relu(outputs::AbstractArray, inputs::AbstractArray; negative_slope::Real=0.01)
+    typed_one = one(eltype(inputs))
+    for index in eachindex(outputs)
+        value = inputs[index]
+        if value >= 0
+            outputs[index] = typed_one
+        else
+            outputs[index] = negative_slope
+        end
+    end
+
+    return outputs
+end
+
 # calculate the element-wise sigmoid activation 
 function sigmoid(inputs::AbstractArray)
     # sig(x) = 1 / (1 + exp(-x))
