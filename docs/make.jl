@@ -1,15 +1,15 @@
 using Documenter
-#=
 include("C:/Users/joerg/Documents/pythonscripts/Neuronale Netze/NNJL/GradValley 5/GradValley/GradValley.jl")
 using .GradValley
 using .GradValley.Layers
 using .GradValley.Functional
 using .GradValley.Optimization
-=#
+#=
 using GradValley
 using GradValley.Layers
 using GradValley.Functional
 using GradValley.Optimization
+=#
 
 makedocs(
     sitename = "GradValley.jl",
