@@ -33,3 +33,10 @@ model = load(file_name, "model")
 # test if the model works correctly
 forward(model, rand(32, 1000))
 ```
+
+It is heavily recommended to run this file (or the file in which you inlcude ResNets.jl), and any other files using GradValley, with multiple threads.
+Using multiple threads can make training much faster.
+To do this, use the -t option when running a julia script in terminal/PowerShell/command line/etc.
+If your CPU has 24 threads, for example, then run:
+julia -t 24 ./ResNets.jl
+The specified number of threads should match the number of threads your CPU provides.
