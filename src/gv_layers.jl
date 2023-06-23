@@ -131,11 +131,25 @@ function general_activation_function_init(activation_function::Union{Nothing, St
         new_activation_function = gv_functional.gv_tanh
         df = gv_functional.d_tanh
         gain = 5 / 3
+    elseif activation_function == "leaky_relu" # leaky_relu with default negative_slope
+        new_activation_function = gv_functional.leaky_relu
+        df = gv_functional.d_leaky_relu
+        gain = sqrt(2/(1 + 0.01^2))
+    elseif split(activation_function, ":")[1] == "leaky_relu" && length(split(activation_function, ":")) > 1 # leaky_relu with specified negative_slope
+        negative_slope = parse(Float64, split(activation_function, ":")[2])
+        _leaky_relu(y, x) = gv_functional.leaky_relu(y, x, negative_slope=negative_slope)
+        _leaky_relu(x) = gv_functional.leaky_relu(x, negative_slope=negative_slope)
+        _d_leaky_relu(y, x) = gv_functional.d_leaky_relu(y, x, negative_slope=negative_slope)
+        _d_leaky_relu(x) = gv_functional.d_leaky_relu(x, negative_slope=negative_slope)
+        new_activation_function = _leaky_relu
+        df = _d_leaky_relu
+        gain = sqrt(2/(1 + negative_slope^2))
     else
         error("""GradValley: general_activation_function_init: activation_function must be one of the following:\n
             "relu",
             "sigmoid",
             "tanh",
+            "leaky_relu"/"leaky_relu:negative_slope",
             use the stand alone Softmax layer for softmax activation
         """)
     end
@@ -2448,6 +2462,18 @@ end
 Base.show(io::IO, layer::Union{Conv, DepthwiseConv, ConvTranspose, Fc, BatchNorm2d, MaxPool, AdaptiveMaxPool, AvgPool, AdaptiveAvgPool, Reshape, Softmax, Identity}) = print(io, get_layer_summary(layer)[1])
 Base.show(io::IO, container::Union{SequentialContainer, GraphContainer}) = print(io, summarize_model(container)[1])
 
+# extracts all containers in a stack of (nested) containers and layers recursively, returns a vector containing all containers
+function extract_containers(container::Union{SequentialContainer, GraphContainer}, container_stack)
+    for layer in container.layer_stack
+        if typeof(layer) == SequentialContainer || typeof(layer) == GraphContainer
+            push!(container_stack, layer)
+            extract_containers(layer, container_stack)
+        end
+    end
+
+    return container_stack
+end
+
 """
     clean_module_from_backward_information!(container_or_layer)
 
@@ -2467,7 +2493,15 @@ end
 
 function clean_module_from_backward_information!(model::Union{SequentialContainer, GraphContainer})
     clean_module_from_backward_information!.(extract_layers(model, []))
-    println("CLEANED")
+    for container in extract_containers(model, [])
+        if typeof(container) == SequentialContainer
+            container.previous_losses = Float64[]
+        else # typeof(container) == GraphContainer
+            container.tracked_inputs = TrackedReal[]
+            container.tracked_output = TrackedReal(0, nothing, nothing, nothing)
+            container.previous_losses = 0
+        end
+    end
 end
 
 end # end of module "Layers"
