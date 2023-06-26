@@ -10,7 +10,6 @@ The entire article is based on an example that uses Machine Learning to solve a 
 Because the article was written using [Pluto-Notebooks](https://github.com/fonsp/Pluto.jl), it offers a lot of interactive functionalities. For example, you can change the learning using a slider rate and all the other code cells using the adjusted learning rate will update automatically! 
 To use the interactive features, you have to download the Pluto-Notebook (click on the button "Edit or run this notebook" in the upper right corner of [the article](https://www.jst-projekte.de/einfuehrung-ml/)) and run it on your local system (the [Pluto package](https://github.com/fonsp/Pluto.jl) must be installed of course).
 
-*The article was written by Jonas Steinebach, the main author of GradValley and its documentation.*
+The article was written by Jonas Steinebach, the main author of GradValley and its documentation.
 
-
-Over time, more helpful articles will be made available here.
+*Over time, more helpful articles will be made available here.*
