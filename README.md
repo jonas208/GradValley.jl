@@ -54,7 +54,7 @@ model = SequentialContainer([feature_extractor, flatten, classifier])
                                   
 # feeding the network with some random data
 # After a model is initialized, its parameters are Float32 arrays by default. The input to the model must always be of the same element type as its parameters!
-# you can change the device (CPU/GPU) and type of the model's parameters with the function module_to_eltype_device!
+# You can change the device (CPU/GPU) and type of the model's parameters with the function module_to_eltype_device!
 input = rand(Float32, 28, 28, 1, 32) # a batch of 32 images with one channel and a size of 28*28 pixels
 prediction = model(input) # layers and containers are callable, alternatively, you can call the forward function directly: forward(model, input)
 
