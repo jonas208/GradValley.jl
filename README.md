@@ -83,8 +83,7 @@ See the [Why GradValley.il](https://jonas208.github.io/GradValley.jl/#Why-GradVa
 If you have any questions about this software package, please let me know in the [discussion](https://github.com/jonas208/GradValley.jl/discussions) section of this repository.
 
 # Contributing
-Everyone is invited to contribute. To do so:
-
+Contributors are more than welcome! A proper guide for contributors will be added soon! Normally the rough procedure is as follows:
 - Fork the current-most state of the main branch
 - Implement features or changes
 - Add your name to AUTHORS.md
