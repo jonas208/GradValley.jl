@@ -7,7 +7,7 @@ on:
       - 'LICENSE'
       - 'README.md'
       - 'AUTHORS.d'
-      - 'tutorials/*'
+      - 'examples/*'
       - 'logo.png'
     tags: '*'
   pull_request:
@@ -17,7 +17,7 @@ on:
       - 'LICENSE'
       - 'README.md'
       - 'AUTHORS.d'
-      - 'tutorials/*'
+      - 'examples/*'
       - 'logo.png'
 jobs:
   build:
