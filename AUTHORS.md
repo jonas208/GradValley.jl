@@ -1,3 +1,3 @@
 # Authors
 
-- Jonas S. (jonas208)
+- Jonas Steinebach (jonas208)
