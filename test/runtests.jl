@@ -1,4 +1,5 @@
 # using source for testing
+#=
 include("C:/Users/joerg/Documents/pythonscripts/Neuronale Netze/NNJL/GradValley 5.1/GradValley/src/GradValley.jl")
 using .GradValley, .GradValley.Functional, .GradValley.Layers, .GradValley.Optimization
 using .GradValley.Functional: convolution2d, convolution2d_data_backward, convolution2d_filter_backward, convolution2d_bias_backward
@@ -10,8 +11,8 @@ using .GradValley.Functional: batch_norm2d_forward, batch_norm2d_data_backward, 
 using .GradValley.Functional: reshape_forward, reshape_backward
 using .GradValley.Functional: fc_forward, fc_backward
 using .GradValley.Functional: softmax_forward, softmax_backward
+=#
 # using installed package for testing
-#=
 using GradValley, GradValley.Functional, GradValley.Layers, GradValley.Optimization
 using GradValley.Functional: convolution2d, convolution2d_data_backward, convolution2d_filter_backward, convolution2d_bias_backward
 using GradValley.Functional: deconvolution2d, deconvolution2d_data_backward, deconvolution2d_filter_backward, deconvolution2d_bias_backward
@@ -22,7 +23,7 @@ using GradValley.Functional: batch_norm2d_forward, batch_norm2d_data_backward, b
 using GradValley.Functional: reshape_forward, reshape_backward
 using GradValley.Functional: fc_forward, fc_backward
 using GradValley.Functional: softmax_forward, softmax_backward
-=#
+# additional dependencies
 using Test
 using CUDA
 
