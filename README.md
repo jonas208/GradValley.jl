@@ -13,8 +13,6 @@ To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blo
 The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ 
 <br> Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be found there as well.
 
-Because GradValley is just 100% high level Julia code, the implemented backend algorithms powering Deep Learning (e.g. convolution) are pretty nice to read. So if you're looking into how exactly such Deep Learning algorithms work, looking at the [source code](https://github.com/jonas208/GradValley.jl/tree/main/src) (and at it's documentation in [Reference](https://jonas208.github.io/GradValley.jl/reference/)) could also be a helpful learning resource. See [Learning](https://jonas208.github.io/GradValley.jl/learning/) for further learning resources. 
-
 #### Note: This software package and its documentation are in an early stage of development and are therefore still a beta version. Some features which may be missing at the moment will be added over time.
 
 # Installation
