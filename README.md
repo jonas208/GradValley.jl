@@ -1,5 +1,5 @@
 # GradValley.jl
-*A new lightweight package for Deep Learning with Julia*
+*A new lightweight package for Deep Learning with Julia (CPU and Nvidia GPU support)*
 
 ![My Image](logo.png)
 
