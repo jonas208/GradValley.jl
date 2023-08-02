@@ -55,8 +55,8 @@ classifier = SequentialContainer([ # a fully connected layer (also known as dens
 model = SequentialContainer([feature_extractor, flatten, classifier])
                                   
 # feeding the network with some random data
-input = rand(32, 1, 28, 28) # a batch of 32 images with one channel and a size of 28*28 pixels
-prediction = forward(model, input) # the forward function can work with a layer or a SequentialContainer
+input = rand(28, 28, 1, 32) # a batch of 32 images with one channel and a size of 28*28 pixels
+prediction = model(input) # layers and containers are callable, alternatively, you can call the forward function directly: forward(model, input)
 
 # choosing an optimizer for training
 learning_rate = 0.05
@@ -88,7 +88,7 @@ Everyone is invited to contribute. To do so:
 - Fork the current-most state of the main branch
 - Implement features or changes
 - Add your name to AUTHORS.md
-- Create a pull-request to the upstream repository
+- Create a pull-request to the repository
 
 # License
 The GradValley.jl software package is currently published under the MIT "Expat" license. See LICENSE for further information.
