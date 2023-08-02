@@ -62,8 +62,8 @@ prediction = model(input) # layers and containers are callable, alternatively, y
 learning_rate = 0.05
 optimizer = MSGD(model, learning_rate, momentum=0.5) # momentum stochastic gradient decent with a momentum of 0.5
 
-# generating some random data for a training step
-target = rand(Float32, size(prediction)...)
+# generating some random target data for a training step
+target = rand(Float32, size(prediction)...) # remember to specify the correct element type here as well
 # backpropagation
 zero_gradients(model)
 loss, derivative_loss = mse_loss(prediction, target) # mean squared error
