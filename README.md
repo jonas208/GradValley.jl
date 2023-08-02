@@ -53,7 +53,9 @@ classifier = SequentialContainer([ # a fully connected layer (also known as dens
 model = SequentialContainer([feature_extractor, flatten, classifier])
                                   
 # feeding the network with some random data
-input = rand(28, 28, 1, 32) # a batch of 32 images with one channel and a size of 28*28 pixels
+# after a model is initialized, its parameters are Float32 arrays by default, the input in the model must always be of the same element type!
+# you can change the device (CPU/GPU) and type of the model's parameters with the function module_to_eltype_device!
+input = rand(Float32, 28, 28, 1, 32) # a batch of 32 images with one channel and a size of 28*28 pixels
 prediction = model(input) # layers and containers are callable, alternatively, you can call the forward function directly: forward(model, input)
 
 # choosing an optimizer for training
@@ -61,7 +63,7 @@ learning_rate = 0.05
 optimizer = MSGD(model, learning_rate, momentum=0.5) # momentum stochastic gradient decent with a momentum of 0.5
 
 # generating some random data for a training step
-target = rand(size(prediction)...)
+target = rand(Float32, size(prediction)...)
 # backpropagation
 zero_gradients(model)
 loss, derivative_loss = mse_loss(prediction, target) # mean squared error
