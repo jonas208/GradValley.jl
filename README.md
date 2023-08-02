@@ -48,8 +48,8 @@ classifier = SequentialContainer([ # a fully connected layer (also known as dens
                                   Fc(256, 120, activation_function="relu"),
                                   Fc(120, 84, activation_function="relu"),
                                   Fc(84, 10),
-                                  # a softmax activation layer, the softmax will be calculated along the second dimension (the features dimension)
-                                  Softmax(dim=2)])
+                                  # a softmax activation layer, the softmax will be calculated along the first dimension (the features dimension)
+                                  Softmax(dims=1)])
 # The final model consists of three different submodules, 
 # which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
 model = SequentialContainer([feature_extractor, flatten, classifier])
