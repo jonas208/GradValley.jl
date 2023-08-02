@@ -7,7 +7,7 @@ on:
       - 'LICENSE'
       - 'README.md'
       - 'AUTHORS.d'
-      - 'tutorials/*'
+      - 'examples/*'
       - 'logo.png'
       - 'docs/*'
     tags: '*'
@@ -18,7 +18,7 @@ on:
       - 'LICENSE'
       - 'README.md'
       - 'AUTHORS.d'
-      - 'tutorials/*'
+      - 'examples/*'
       - 'logo.png'
       - 'docs/*'
 jobs:
