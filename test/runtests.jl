@@ -30,7 +30,6 @@ using CUDA
 # check if cuda is available
 use_cuda = CUDA.functional()
 
-#=
 # the backend cpu functions in src/functional are tested against cuda to ensure mutual correctness
 if use_cuda
     println("Test Convolution"); include("gv_convolution_cuda_test.jl")
@@ -42,7 +41,6 @@ if use_cuda
     println("Test Fully Connected"); include("gv_fully_connected_cuda_test.jl")
     println("Test Activation Functions"); include("gv_activation_functions_cuda_test.jl")
 end
-=#
 
 # test the DataLoader (only works on the cpu currently)
 include("gv_data_loader_test.jl")
