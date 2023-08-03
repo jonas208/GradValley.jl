@@ -20,22 +20,24 @@ classifier = SequentialContainer([ # a fully connected layer (also known as dens
                                   Fc(256, 120, activation_function="relu"),
                                   Fc(120, 84, activation_function="relu"),
                                   Fc(84, 10),
-                                  # a softmax activation layer, the softmax will be calculated along the second dimension (the features dimension)
-                                  Softmax(dim=2)])
+                                  # a softmax activation layer, the softmax will be calculated along the first dimension (the features dimension)
+                                  Softmax(dims=1)])
 # The final model consists of three different submodules, 
 # which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
 model = SequentialContainer([feature_extractor, flatten, classifier])
                                   
 # feeding the network with some random data
-input = rand(32, 1, 28, 28) # a batch of 32 images with one channel and a size of 28*28 pixels
-prediction = forward(model, input) # the forward function can work with a layer or a SequentialContainer
+# After a model is initialized, its parameters are Float32 arrays by default. The input to the model must always be of the same element type as its parameters!
+# You can change the device (CPU/GPU) and element type of the model's parameters with the function module_to_eltype_device!
+input = rand(Float32, 28, 28, 1, 32) # a batch of 32 images with one channel and a size of 28*28 pixels
+prediction = model(input) # layers and containers are callable, alternatively, you can call the forward function directly: forward(model, input)
 
 # choosing an optimizer for training
 learning_rate = 0.05
 optimizer = MSGD(model, learning_rate, momentum=0.5) # momentum stochastic gradient decent with a momentum of 0.5
 
-# generating some random data for a training step
-target = rand(size(prediction)...)
+# generating some random target data for a training step
+target = rand(Float32, size(prediction)...) # remember to specify the correct element type here as well
 # backpropagation
 zero_gradients(model)
 loss, derivative_loss = mse_loss(prediction, target) # mean squared error

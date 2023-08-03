@@ -1,7 +1,7 @@
 # Reference
 
-!!! warning
-    For some (mostly internal) functions, the documentation is still missing because this documentation is still under construction!
+!!! note
+    Note that for all keyword arguments of type `NTuple{2, Int}`, the order of dimensions is (y/height-dimension, x/width-dimension).
 
 ```@contents
 Pages = ["reference.md"]
@@ -23,7 +23,8 @@ reshuffle!
 SequentialContainer
 GraphContainer
 summarize_model
-clean_module_from_backward_information!
+module_to_eltype_device!
+clean_model_from_backward_information!
 ```
 
 ### Forward- and Backward-Pass
@@ -46,7 +47,6 @@ testmode!
 ### Convolution
 ```@docs
 Conv
-DepthwiseConv
 ConvTranspose
 ```
 
@@ -70,7 +70,7 @@ Identity
 
 ### Normalization
 ```@docs
-BatchNorm2d
+BatchNorm
 ```
 
 ### Reshape / Flatten
@@ -118,10 +118,4 @@ GradValley.Functional contains many primitives common for various neuronal netwo
 ```@docs
 GradValley.Functional.zero_pad_nd
 GradValley.Functional.zero_pad_2d
-GradValley.Functional.convolution2d!
-GradValley.Functional.convolution2d
-GradValley.Functional.convolution2d_data_backward!
-GradValley.Functional.convolution2d_data_backward
-GradValley.Functional.deconvolution2d!
-GradValley.Functional.deconvolution2d
 ```
