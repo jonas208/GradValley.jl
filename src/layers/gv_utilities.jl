@@ -32,7 +32,7 @@ end
     clean_model_from_backward_information!(model::AbstractContainer)
 
 Clean a container from backward pass information (e.g. computational graph).
-It is recommended to run this function on a model which should be saved to file.
+It is recommended to run this function on a model which should be saved to a file.
 ```
 """
 function clean_model_from_backward_information! end
@@ -48,6 +48,18 @@ function clean_model_from_backward_information!(model::AbstractContainer)
         end
     end
 end
+
+"""
+    module_to_eltype_device!(layer::AbstractLayer; element_type::DataType=Float32, device::AbstractString="cpu")
+
+Convert the parameters of a container or layer to a different element type and move the parameters to the specified device.
+
+# Arguments
+- `layer::AbstractLayer`: the layer or container (often just the entire model) holding the parameters to be changed
+- `element_type::DataType=Float32`: the element type into which the parameters will be converted to
+- `device::AbstractString="cpu"`: the device to which the parameters will be moved, can be "cpu" or "gpu" (only CUDA is supported)
+"""
+function module_to_eltype_device! end
 
 function module_to_eltype_device!(layer::AbstractLayer; element_type::DataType=Float32, device::AbstractString="cpu")
     if device == "gpu"

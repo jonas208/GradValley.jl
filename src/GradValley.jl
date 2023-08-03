@@ -86,7 +86,7 @@ When a batch is requested, the data loader returns the tuple containing the with
 # Arguments
 - `get_function::Function`: the function which takes the index of an item from a dataset and returns that item (an arbitrary sized tuple containing arrays)
 - `dataset_size::Integer`: the maximum index the `get_function` accepts (the number of items in the dataset, the dataset size)
-- `batch_size::Integer=1`: the batch size (the first dimension, the extended batch dimension, of each array in the returned tuple as that size)
+- `batch_size::Integer=1`: the batch size (the last dimension, the extended batch dimension, of each array in the returned tuple has this size)
 - `shuffle::Bool=false`: reshuffle the data (doesn't reshuffle automatically after each epoch, use [`reshuffle!`](@ref) instead)
 - `drop_last::Bool=false`: set to true to drop the last incomplete batch, if the dataset size is not divisible by the batch size, if false and the size of dataset is not divisible by the batch size, then the last batch will be smaller
 
@@ -109,10 +109,10 @@ julia> function get_element(index, partition)
             # add channel dimension and rescaling the values to their original 8 bit gray scale values
             image = reshape(image, 28, 28, 1) .* 255
             # generate the target vector from the label, one for the correct digit, zeros for the wrong digits
-            targets = zeros(10)
-            targets[label + 1] = 1.00
+            target = zeros(10)
+            target[label + 1] = 1.00
 
-            return convert(Array{Float64, 3}, image), targets
+            return image, target
        end
 # initialize the data loaders (with anonymous function which helps to easily distinguish between test- and train-partition)
 train_data_loader = DataLoader(index -> get_element(index, "train"), length(mnist_train), batch_size=32, shuffle=true)
@@ -121,8 +121,8 @@ test_data_loader = DataLoader(index -> get_element(index, "test"), length(mnist_
 julia> # train_data = train_data_loader[begin:end] # turned off to save time
 julia> # test_data = test_data_loader[begin:end] # turned off to save time
 # now you can write your train- or test-loop like so 
-julia> for (batch, (images_batch, targets_batch)) in enumerate(test_data_loader) #=do anything useful here=# end
-julia> for (batch, (images_batch, targets_batch)) in enumerate(train_data_loader) #=do anything useful here=# end
+julia> for (batch, (image_batch, target_batch)) in enumerate(test_data_loader) #=do anything useful here=# end
+julia> for (batch, (image_batch, target_batch)) in enumerate(train_data_loader) #=do anything useful here=# end
 ```
 """
 mutable struct DataLoader

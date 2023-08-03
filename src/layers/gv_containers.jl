@@ -163,8 +163,8 @@ zero_gradients(m)
 julia> backward(model, derivative_loss)
 ```
 """
-# function backward(sc::SequentialContainer, derivative_loss::Union{AbstractArray{T, N}, Real}) where {T, N}
 function backward(sc::SequentialContainer, derivative_loss::Union{AbstractArray, Real})
+# function backward(sc::SequentialContainer, derivative_loss::Union{AbstractArray{T, N}, Real}) where {T, N}
     tracked_backward(sc.tracked_output, derivative_loss)
     # save the gradient to the input (argument)
     input_gradient = sc.tracked_input.gradient
@@ -359,8 +359,8 @@ julia> input_gradients = backward(model, derivative_loss) # input_gradients is a
 julia> input_gradient = input_gradients[1] # input_gradient is the gradient w.r.t to the single input
 ```
 """
-# function backward(grc::GraphContainer, derivative_loss::Union{AbstractArray{T, N}, Real}) where {T, N}
 function backward(grc::GraphContainer, derivative_loss::Union{AbstractArray, Real})
+# function backward(grc::GraphContainer, derivative_loss::Union{AbstractArray{T, N}, Real}) where {T, N}
     tracked_backward(grc.tracked_output, derivative_loss)
     # save the gradients to the inputs (arguments) of the forward pass function (exept the first "layers" argument)
     gradients = [tracked_input.gradient for tracked_input in grc.tracked_inputs]
