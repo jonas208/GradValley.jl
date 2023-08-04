@@ -6,7 +6,7 @@ This is the source of the ResNets model definitions found in the tutorials and e
 This script is also used by the pre-trained ResNets found in the pre-trained models section of the documentation: https://jonas208.github.io/GradValley.jl/(pre-trained)_models/#ResNet18/34/50/101/152-(Image-Classification)
 
 Important Note:
-It is heavily recommended to run this file (or the file in which you inlcude ResNets.jl), and any other files using GradValley, with multiple threads.
+It is heavily recommended to run this file (or the file in which you include and use ResNets.jl), and any other files using GradValley, with multiple threads.
 Using multiple threads can make training and calculating predictions much faster.
 To do this, use the -t option when running a julia script in terminal/PowerShell/command line/etc.
 If your CPU has 24 threads, for example, then run:
