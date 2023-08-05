@@ -1,5 +1,5 @@
-#=
 using Documenter
+#=
 include("C:/Users/joerg/Documents/pythonscripts/Neuronale Netze/NNJL/GradValley 5.1/GradValley/src/GradValley.jl")
 using .GradValley
 using .GradValley.Layers
@@ -15,7 +15,7 @@ makedocs(
     sitename = "GradValley.jl",
     format = Documenter.HTML(),
     modules = [GradValley],
-    pages = ["Home" => "index.md", "Installation" => "installation.md", "Getting Started" => "getting_started.md", "Reference" => "reference.md", "Tutorials and Examples" => "tutorials_and_examples.md", "(Pre-Trained) Models" => "(pre-trained)_models.md", "Saving and Loading" =>"saving_and_loading.md", "Learning" => "learning.md"]
+    pages = ["Home" => "index.md", "Installation" => "installation.md", "Getting Started" => "getting_started.md", "GPU Support" => "gpu_support.md", "Reference" => "reference.md", "Tutorials and Examples" => "tutorials_and_examples.md", "(Pre-Trained) Models" => "(pre-trained)_models.md", "Saving and Loading" =>"saving_and_loading.md", "Learning" => "learning.md"]
 )
 
 #=
