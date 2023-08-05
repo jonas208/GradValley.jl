@@ -5,7 +5,7 @@ Here, you can find detailed explanations on how to build and train specific mode
 ## A LeNet-like model for handwritten digit recognition
 
 In this tutorial, we will learn the basics of GradValley.jl while building a model for handwritten digit recognition, reaching approximately 99% accuracy on the MNIST-dataset.
-The whole code at once can be found [here](https://github.com/jonas208/GradValley.jl/blob/main/tutorials/MNIST_with_LeNet5.jl).
+The whole code at once can be found [here](https://github.com/jonas208/GradValley.jl/blob/main/examples/MNIST_with_LeNet5.jl).
 
 ### Importing modules
 
@@ -56,12 +56,13 @@ function get_element(index, partition)
         image, label = mnist_test[index]
     end
     # add channel dimension and rescaling the values to their original 8 bit gray scale values
-    image = reshape(image, 1, 28, 28) .* 255
+    image = reshape(image, 28, 28, 1) .* 255
     # generate the target vector from the label, one for the correct digit, zeros for the wrong digits
-    targets = zeros(10)
-    targets[label + 1] = 1.00
+    # the element type of the image is Float32, so the target vector should have the same element type
+    target = zeros(Float32, 10) 
+    target[label + 1] = 1.f0
 
-    return convert(Array{Float64, 3}, image), targets
+    return image, target
 end
 ```
 We can now initialize the data loaders.
@@ -79,7 +80,7 @@ test_data = test_data_loader[begin:end]
 
 ### Building the neuronal network aka. the model
 
-The most recommend way to build models is to use the GradValley.Layers.SequentialContainer struct. A SequtialContainer can take an array of layers or other SequentialContainers (sub-models).
+The recommend way to build feed forward models is to use the GradValley.Layers.SequentialContainer struct. A SequtialContainer can take an array of layers or other containers (sub-models).
 While forward-pass, the given inputs are *sequentially* propagated through every layer (or sub-model) and the output will be returned. For more details, see [Reference](@ref).
 The LeNet5 model is one of the earliest convolutional neuronal networks (CNNs) reaching approximately 99% accuracy on the MNIST-dataset.
 The LeNet5 is built of two main parts, the feature extractor and the classifier. So it would be a good idea to clarify that in the code:
@@ -96,11 +97,15 @@ classifier = SequentialContainer([ # a fully connected layer (also known as dens
                                   Fc(256, 120, activation_function="relu"),
                                   Fc(120, 84, activation_function="relu"),
                                   Fc(84, 10),
-                                  # a softmax activation layer, the softmax will be calculated along the second dimension (the features dimension)
-                                  Softmax(dim=2)])
+                                  # a softmax activation layer, the softmax will be calculated along the first dimension (the features dimension)
+                                  Softmax(dims=1)])
 # The final model consists of three different submodules, 
 # which shows that a SequentialContainer can contain not only layers, but also other SequentialContainers
 model = SequentialContainer([feature_extractor, flatten, classifier])
+
+# After a model is initialized, its parameters are Float32 arrays by default. The input to the model must always be of the same element type as its parameters!
+# You can change the device (CPU/GPU) and element type of the model's parameters with the function module_to_eltype_device!
+# The element type of our data (image/target) is already Float32 and because this LeNet is such a small model, using the CPU is just fine.
 ```
 
 #### Printing a nice looking summary of the model
@@ -121,13 +126,13 @@ If we want to change the learning rate or the loss function for example, this is
 loss_function = mse_loss # mean squared error
 learning_rate = 0.05
 optimizer = MSGD(model, learning_rate, momentum=0.5) # momentum stochastic gradient descent with a momentum of 0.5
-epochs = 5 # 5 or 10
+epochs = 5 # 5 or 10, for example
 ```
 
 ### Train and test the model
 
 The next step is to write a function for training the model using the above defined hyperparameters.
-The network is trained 10 times (epochs) with the entire training data set. After each batch, the weights/parameters of the network are adjusted/optimized.
+For example, the network is trained 5 or 10 times (epochs) with the entire training data set. After each batch, the weights/parameters of the network are adjusted/optimized.
 However, we want to test the model after each epoch, so we need to write a function for evaluating the model's accuracy first.
 
 ```julia
@@ -137,11 +142,12 @@ function test()
     avg_test_loss = 0
     for (batch, (images_batch, targets_batch)) in enumerate(test_data_loader)
         # computing predictions
-        predictions_batch = forward(model, images_batch)
+        predictions_batch = model(images_batch) # equivalent to forward(model, images_batch)
         # checking for each image in the batch individually if the prediction is correct
-        for index_batch in 1:size(predictions_batch)[1]
-            single_prediction = predictions_batch[index_batch, :]
-            single_target = targets_batch[index_batch, :]
+        batch_size = size(predictions_batch)[end] # the batch dimension is always the last dimension
+        for index_batch in 1:batch_size
+            single_prediction = predictions_batch[:, index_batch]
+            single_target = targets_batch[:, index_batch]
             if argmax(single_prediction) == argmax(single_target)
                 num_correct_preds += 1
             end
@@ -166,11 +172,11 @@ function train()
             # iterating over the whole data set
             for (batch, (images_batch, targets_batch)) in enumerate(train_data_loader)
                 # computing predictions
-                predictions_batch = forward(model, images_batch)
+                predictions_batch = model(images_batch) # equivalent to forward(model, images_batch)
                 # backpropagation
-                zero_gradients(model)
+                zero_gradients(model) # reset the gradients
                 loss, derivative_loss = loss_function(predictions_batch, targets_batch)
-                backward(model, derivative_loss)
+                backward(model, derivative_loss) # compute the gradients
                 # optimize the model's parameters
                 step!(optimizer)
                 # printing status
@@ -201,7 +207,7 @@ We will use the [BSON.jl](https://github.com/JuliaIO/BSON.jl) package for saving
 # when this file is run as the main script,
 # then train() is run and the final model will be saved using a package called BSON.jl
 import Pkg; Pkg.add("BSON")
-using BSON: @save
+using BSON: @save # a package for saving and loading julia objects as files
 if abspath(PROGRAM_FILE) == @__FILE__
     train()
     file_name = "MNIST_with_LeNet5_model.bson"
@@ -214,15 +220,17 @@ end
 
 If you want to easily use the trained model, you firstly need to import the necessary modules from GradValley.
 Then you can use the @load macro of BSON to load the model object. Now you can let the model make a few individual predictions, for example.
-Use this code in an extra file.
+Use this code in in another file.
 ```julia
+# load the model and make some individual predictions
+
 using GradValley
 using GradValley.Layers 
 using GradValley.Optimization
 using MLDatasets
 using BSON: @load
 
-# load the trained model
+# load the pre-trained model
 @load "MNIST_with_LeNet5_model.bson" model
 
 # make some individual predictions
@@ -231,9 +239,9 @@ for i in 1:5
     random_index = rand(1:length(mnist_test))
     image, label = mnist_test[random_index]
     # remember to add batch and channel dimensions and to rescale the image as was done during training and testing
-    image_batch = convert(Array{Float64, 4}, reshape(image, 1, 1, 28, 28)) .* 255
-    prediction = forward(model, image_batch)
-    predicted_label = argmax(prediction[1, :]) - 1
+    image_batch = reshape(image, 28, 28, 1, 1) .* 255
+    prediction = model(image_batch)
+    predicted_label = argmax(prediction[:, 1]) - 1
     println("Predicted label: $predicted_label, Correct Label: $label")
 end
 ```
@@ -241,7 +249,7 @@ end
 ### Running the file with multiple threads
 
 It is heavily recommended to run this file, and any other files using GradValley, with multiple threads.
-Using multiple threads can make training much faster.
+Using multiple threads can make training and calculating predictions much faster.
 To do this, use the ```-t``` option when running a julia script in terminal/PowerShell/command line/etc.
 If your CPU has 24 threads, for example, then run:
 ```
@@ -252,12 +260,12 @@ The specified number of threads should match the number of threads your CPU prov
 ### Results
 
 These were my results after 5 training epochs:
-*Results of epoch 5: Avg train loss: 0.00237, Avg test loss: 0.00283, Accuracy: 98.21%, Time taken: 13.416619 seconds (20.34 M allocations: 30.164 GiB, 5.86% gc time)*
-On my Ryzen 9 5900X CPU (using all 24 threads, slightly overclocked), one epoch took around ~15 seconds (no compilation time), so the whole training (5 epochs) took around ~75 seconds (no compilation time).
+*Results of epoch 5: Avg train loss: 0.00239, Avg test loss: 0.00248, Accuracy: 98.36%, Time taken:  5.649449 seconds (20.96 M allocations: 13.025 GiB, 10.04% gc time)*
+On my Ryzen 9 5900X CPU (using all 24 threads, slightly overclocked), one epoch took around ~6 seconds (no compilation time), so the whole training (5 epochs) took around ~30 seconds (no compilation time).
 
 ## Generic ResNet (18/34/50/101/152) implementation
 
-The same code can be also found [here](https://github.com/jonas208/GradValley.jl/blob/main/tutorials/ResNets.jl).
+The same code can be also found [here](https://github.com/jonas208/GradValley.jl/blob/main/examples/ResNet.jl).
 
 This example shows the ResNet implementation used by the [pre-trained ResNets](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/#ResNet18/34/50/101/152-(Image-Classification)).
 The function `ResBlock` generates a standard residual block (with one residual/skipped connection) with optional downsampling. 
@@ -278,7 +286,7 @@ function ResBlock(in_channels::Int, out_channels::Int, downsample::Bool)
     if downsample
         shortcut = SequentialContainer([
             Conv(in_channels, out_channels, (1, 1), stride=(2, 2), use_bias=false),
-            BatchNorm2d(out_channels)
+            BatchNorm(out_channels)
         ])
         conv1 = Conv(in_channels, out_channels, (3, 3), stride=(2, 2), padding=(1, 1), use_bias=false)
     else
@@ -287,8 +295,8 @@ function ResBlock(in_channels::Int, out_channels::Int, downsample::Bool)
     end
 
     conv2 = Conv(out_channels, out_channels, (3, 3), padding=(1, 1), use_bias=false)
-    bn1 = BatchNorm2d(out_channels, activation_function="relu")
-    bn2 = BatchNorm2d(out_channels) # , activation_function="relu"
+    bn1 = BatchNorm(out_channels, activation_function="relu")
+    bn2 = BatchNorm(out_channels) # , activation_function="relu"
 
     relu = Identity(activation_function="relu")
 
@@ -323,12 +331,12 @@ function ResBottelneckBlock(in_channels::Int, out_channels::Int, downsample::Boo
         if downsample
             shortcut = SequentialContainer([
                 Conv(in_channels, out_channels, (1, 1), stride=(2, 2), use_bias=false),
-                BatchNorm2d(out_channels)
+                BatchNorm(out_channels)
             ])
         else
             shortcut = SequentialContainer([
                 Conv(in_channels, out_channels, (1, 1), use_bias=false),
-                BatchNorm2d(out_channels)
+                BatchNorm(out_channels)
             ])
         end
     end
@@ -341,9 +349,9 @@ function ResBottelneckBlock(in_channels::Int, out_channels::Int, downsample::Boo
     end
     conv3 = Conv(out_channels ÷ 4, out_channels, (1, 1), use_bias=false)
 
-    bn1 = BatchNorm2d(out_channels ÷ 4, activation_function="relu")
-    bn2 = BatchNorm2d(out_channels ÷ 4, activation_function="relu")
-    bn3 = BatchNorm2d(out_channels) # , activation_function="relu"
+    bn1 = BatchNorm(out_channels ÷ 4, activation_function="relu")
+    bn2 = BatchNorm(out_channels ÷ 4, activation_function="relu")
+    bn3 = BatchNorm(out_channels) # , activation_function="relu"
 
     relu = Identity(activation_function="relu")
 
@@ -375,7 +383,7 @@ function ResNet(in_channels::Int, ResBlock::Union{Function, DataType}, repeat::V
     # define layer0
     layer0 = SequentialContainer([
         Conv(in_channels, 64, (7, 7), stride=(2, 2), padding=(3, 3), use_bias=false),
-        BatchNorm2d(64, activation_function="relu"),
+        BatchNorm(64, activation_function="relu"),
         MaxPool((3, 3), stride=(2, 2), padding=(1, 1))
     ])
 
@@ -447,11 +455,11 @@ function ResNet152(in_channels=3, classes=1000)
 end
 ```
 
-It is heavily recommended to run this file (or the file in which you inlcude ResNets.jl), and any other files using GradValley, with multiple threads.
+It is heavily recommended to run this file (or the file in which you include and use ResNet.jl), and any other files using GradValley, with multiple threads.
 Using multiple threads can make training and calculating predictions much faster.
 To do this, use the ```-t``` option when running a julia script in terminal/PowerShell/command line/etc.
 If your CPU has 24 threads, for example, then run:
 ```
-julia -t 24 ./ResNets.jl
+julia -t 24 ./ResNet.jl
 ```
 The specified number of threads should match the number of threads your CPU provides.

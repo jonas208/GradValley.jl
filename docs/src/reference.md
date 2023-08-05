@@ -80,11 +80,11 @@ Reshape
 
 ### Activation functions
 Almost every layer constructor has the keyword argument `activation_function` specifying the element-wise activation function. `activation_function` can be `nothing` or a string. `nothing` means no activation function, a string gives the name of the activation. Because softmax isn’t a simple element-wise activation function like the most activations, [`Softmax`](@ref) has it’s own layer. The following element-wise activation functions are currently implemented:  
-- `"relu"`: applies the element-wise relu activation (recified linear unit): ``f(x) = ``
-- `"sigmoid"`: applies the element-wise sigmoid acivation (logistic curve): ``f(x) = ``
-- `"tanh"`: applies the element-wise tanh activation (tangens hyperbolicus): ``f(x) = ``
-- `"leaky_relu"`: applies a element-wise leaky relu activation with a negative slope of 0.01: ``f(x) = ``
-- `"leaky_relu:$(negative_slope)"`: applies a element-wise leaky relu activation with a negative slope of `negative_slope` (e.g. `"leaky_relu:0.2"` means a leaky relu activation with a negative slope of 0.2): ``f(x) = ``
+- `"relu"`: applies the element-wise relu activation (recified linear unit): ``f(x) = \max(0, x)``
+- `"sigmoid"`: applies the element-wise sigmoid acivation (logistic curve): ``f(x) = \frac{1}{1 + e^{-x}}``
+- `"tanh"`: applies the element-wise tanh activation (tangens hyperbolicus): ``f(x) = \tanh(x) = \frac{e^{x} - e^{-x}}{e^{x} + e^{-x}}``
+- `"leaky_relu"`: applies a element-wise leaky relu activation with a negative slope of 0.01: ``f(x) = \begin{cases}x &\text{if $x \geq 0$}\\\textnormal{0.01} \times x &\text{if $x < 0$}\end{cases}``
+- `"leaky_relu:$(negative_slope)"`: applies a element-wise leaky relu activation with a negative slope of `negative_slope` (e.g. `"leaky_relu:0.2"` means a leaky relu activation with a negative slope of 0.2): ``f(x) = \begin{cases}x &\text{if $x \geq 0$}\\\textnormal{negative\_slope} \times x &\text{if $x < 0$}\end{cases}``
 
 ### Special activation functions
 ```@docs
@@ -113,7 +113,7 @@ bce_loss
 ```
 
 ## GradValley.Functional
-GradValley.Functional contains many primitives common for various neuronal networks. Not all functions are documented because they are mostly used only internally (not by the user). 
+GradValley.Functional contains many primitives common for various neuronal networks. Not all of these functions (better said the fewest) are documented because they are mostly used only internally (not by the user).
 
 ```@docs
 GradValley.Functional.zero_pad_nd
