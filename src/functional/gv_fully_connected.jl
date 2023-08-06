@@ -1,4 +1,5 @@
 function fc_forward!(output::AbstractMatrix{T}, input::AbstractMatrix{T}, weight::AbstractMatrix{T}, bias::Vector{T}) where {T <: Real}
+    #= GOOD VERSION 
     current_batch_size = size(input)[2]
     # in_features, out_features = size(weight)
     out_features, in_features = size(weight)
@@ -13,12 +14,16 @@ function fc_forward!(output::AbstractMatrix{T}, input::AbstractMatrix{T}, weight
             output[out_feature, index_batch] = output_value + bias[out_feature]
         end
     end
+    =#
     #=
     current_batch_size = size(input)[2]
     for index_batch in 1:current_batch_size
         output[:, index_batch] = weight * input[:, index_batch] + bias
     end
     =#
+    # output .= weight * input .+ bias
+    output .= T(0) # might not be necessary!
+    output = BLAS.gemm!('N', 'N', T(1), weight, input, T(0), output) .+ bias # T(1)
 
     return output
 end
@@ -32,6 +37,7 @@ function fc_forward(input::AbstractMatrix{T}, weight::AbstractMatrix{T}, bias::V
 end
 
 function fc_backward!(input_gradient::AbstractMatrix{T}, weight_gradient::AbstractMatrix{T}, bias_gradient::AbstractVector{T}, output_gradient::AbstractMatrix{T}, input::AbstractMatrix{T}, weight::AbstractMatrix{T}) where {T <: Real}
+    #= GOOD VERSION =#
     current_batch_size = size(input_gradient)[2]
     # in_features, out_features = size(weight_gradient)
     out_features, in_features = size(weight_gradient)
@@ -51,6 +57,13 @@ function fc_backward!(input_gradient::AbstractMatrix{T}, weight_gradient::Abstra
             input_gradient[in_feature, index_batch] = value
         end
     end
+    #=
+    input_gradient .= T(0) # might not be necessary!
+    weight_gradient .= T(0) # might not be necessary!
+    input_gradient = BLAS.gemm!('T', 'N', T(1), weight, output_gradient, T(0), input_gradient)
+    weight_gradient = BLAS.gemm!('N', 'T', T(1), output_gradient, input, T(0), weight_gradient)
+    =#
+    
     bias_gradient .= sum(output_gradient, dims=2)[:, 1]
 
     return input_gradient, weight_gradient, bias_gradient

@@ -1,8 +1,11 @@
 function fc_forward!(output::DenseCuMatrix{T}, input::DenseCuMatrix{T}, weight::DenseCuMatrix{T}, bias::DenseCuVector{T}) where {T <: CUDNNFloat}
+    #=
     current_batch_size = size(input)[2]
     for index_batch in 1:current_batch_size
         output[:, index_batch] = weight * input[:, index_batch] + bias
     end
+    =#
+    output .= weight * input .+ bias
 
     return output
 end
@@ -16,6 +19,7 @@ function fc_forward(input::DenseCuMatrix{T}, weight::DenseCuMatrix{T}, bias::Den
 end
 
 function fc_backward!(input_gradient::DenseCuMatrix{T}, weight_gradient::DenseCuMatrix{T}, bias_gradient::DenseCuVector{T}, output_gradient::DenseCuMatrix{T}, input::DenseCuMatrix{T}, weight::DenseCuMatrix{T}) where {T <: CUDNNFloat}
+    #=
     current_batch_size = size(input_gradient)[2]
     # in_features, out_features = size(weight_gradient)
     out_features, in_features = size(weight_gradient)
@@ -31,6 +35,13 @@ function fc_backward!(input_gradient::DenseCuMatrix{T}, weight_gradient::DenseCu
         single_output_gradient = reshape(single_output_gradient_vector, out_features, 1)
         weight_gradient += single_output_gradient * input[:, index_batch]'
     end
+    =#
+    input_gradient .= T(0) # might not be necessary!
+    weight_gradient .= T(0) # might not be necessary!
+    # CUDA.CUBLAS.gemm!('T', 'N', 1, weight, output_gradient, 0, input_gradient) # 1
+    # CUDA.CUBLAS.gemm!('N', 'T', 1, output_gradient, input, 0, weight_gradient) # 1
+    CUDA.CUBLAS.gemm!('T', 'N', T(1), weight, output_gradient, T(0), input_gradient) # T(1)
+    CUDA.CUBLAS.gemm!('N', 'T', T(1), output_gradient, input, T(0), weight_gradient) # T(1)
 
     bias_gradient .= sum(output_gradient, dims=2)[:, 1]
 
