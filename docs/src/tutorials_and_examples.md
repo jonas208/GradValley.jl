@@ -463,3 +463,90 @@ If your CPU has 24 threads, for example, then run:
 julia -t 24 ./ResNet.jl
 ```
 The specified number of threads should match the number of threads your CPU provides.
+
+## Deep Convolutional Generative Adverserial Network (DCGAN) on CelebA-HQ
+
+This example/tutorial can be seen as a reimplementation of [PyTorch's DCGAN Tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html) with the difference
+that we are using CelebA-HQ (approx. 30,000 images) here instead of the normal CelebA (approx. 200,000 images) dataset. 
+Note that this tutorial doens't cover the theory behind DCGANs, it just focuses on the implementation in Julia with GradValley.jl.
+You can find detailed information about the theory and a step by step implementation in the awesome [PyTorch DCGAN Tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html).
+
+The entire code, split into 4 files, can be found [here](https://github.com/jonas208/GradValley.jl/blob/main/examples/GAN).
+
+### Data Preparation
+
+Because loading and preprocessing 30,000 images takes some time, it would be a big waste of time to reload and prepare the dataset for each new training.
+Instead, we outsource the data prepreprocessing in another script an save the prepared data as a [.jld2](https://github.com/JuliaIO/JLD2.jl) file using [FileIO](https://github.com/JuliaIO/FileIO.jl).
+
+We don't use CelebA-HQ because it's *high quality*. We could also just the use the normal version of CelebA, however, CelebA-HQ is a much smaller dataset and therefore easier to handle.
+I recommend to [download the 256x256 version of CelebA-HQ](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256) because we only need 64x64 images for the DCGAN. 
+Make sure all images are in a decompressed folder. This folder should contain 30,000 files.
+
+The preprocessing of the images is done with help of [Images.jl](https://github.com/JuliaImages/Images.jl) and [ImageTransformations.jl](https://github.com/JuliaImages/ImageTransformations.jl)
+The included file `preprocessing_for_resnets.jl` is the file which is normally used by the pre-trained ResNets. It conatains some useful utilities for preprocessing images. So it is useful for this DCGAN Tutorial as well.
+We will use GradValley's [`DataLoader`](@ref) to load the images into batches.
+
+You can skip the data preparation and download the preprocessed data [here]().
+
+Training for 10 epochs on the CPU takes approx. 5 hours.
+
+```julia
+using GradValley
+include("preprocessing_for_resnets.jl")
+using FileIO
+
+data_directory = "your/path/to/celebA-HQ" # replace the string with the real path to the folder containing the images
+files = readdir(data_directory)
+dataset_size = length(files) # aka number of files/images
+
+dtype = Float64 # Float64 is heavily recommend here, we can switch to Float32 for training any way
+image_size = 64
+batch_size = 128
+
+# get function for the data loader that reads and transforms an image
+function get_image(index::Integer)
+    # convert the image to the element type dtype and scale the values accordingly
+    image = convert_image_eltype(image, dtype)
+    # resize equivalent to torchvision's resize with one integer given as size argument
+    width, height, channels = size(image)
+    # print an error if the number of channels is not equal to 3 (rgb-images), important for normalization
+    if channels != 3
+        error("_preprocess: error while preprocessing, the image is expected to have 3 channels, however, $channels channel(s) was/were found")
+    end
+    # keeping the aspect ratio
+    if height >= width
+        new_size = (resize_size, convert(Int, trunc(resize_size * (height/width))), channels)
+    elseif width > height
+        new_size = (convert(Int, trunc(resize_size * (width/height))), resize_size, channels)
+    end
+    image = imresize(image, new_size)
+    # desired size after cropping 
+    crop_size = (224, 224)
+    # center crop equivalent to torchvision's center crop 
+    image = center_crop(image, crop_size[1], crop_size[2])
+    # mean and standard deviation for normalization (separately for each channel)
+    mean = [0.5, 0.5, 0.5]
+    std = [0.5, 0.5, 0.5]
+    # normalize equivalent to torchvision's normalize 
+    image = normalize(image, mean, std)
+
+    return (image, )
+end
+
+# initialize the data loader for loading the images into batches
+dataloader = DataLoader(get_image, dataset_size, batch_size=batch_size, shuffle=true)
+num_batches = dataloader.num_batches
+file_name = "CelebA-HQ_preprocessed.jld2" # you can change the file name/path here as well
+println("Number of batches: $num_batches")
+
+# data is a vector conatining the image batches
+data = Vector{Array{dtype, 4}}(undef, num_batches)
+# iterate over the data loader and add the batches to the data vector
+for (batch_index, (images_batch, )) in enumerate(dataloader)
+    println("[$batch_index/$num_batches]")
+    data[batch_index] = images_batch
+end
+# the vector containing the batches is stored in file_name under the "data" key
+save(file_name, Dict("data" => data))
+
+```
