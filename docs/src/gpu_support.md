@@ -10,7 +10,7 @@ A common workflow to enable training and inference on both the GPU and CPU is to
 If [CUDA.functional()](https://cuda.juliagpu.org/stable/api/essentials/#Initialization) is `true`, then the model and the input/target data can be moved to the GPU. This way, the code works not just for one type of device.
 
 The following example describes how GPU and CPU ready code can look like. 
-A real example that uses the GPU (if available) for training is the [DCGAN Tutorial](). With a RTX 3090, for example, it's possible to train the DCGAN on Celeb-A HQ (30,000 images) for 25 epochs in just 5 to 10 minutes (much faster than on the CPU)!
+A real example that uses the GPU (if available) for training is the [DCGAN Tutorial](https://jonas208.github.io/GradValley.jl/dev/tutorials_and_examples/#Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ). With a RTX 3090, for example, it's possible to train the DCGAN on Celeb-A HQ (30,000 images) for 25 epochs in just 5 to 10 minutes (much faster than on the CPU)!
 
 ```julia
 using GradValley
