@@ -1,3 +1,12 @@
+#=
+It is heavily recommended to run this file, and any other files using GradValley, with multiple threads.
+Using multiple threads can make training and calculating predictions on the CPU much faster.
+To do this, use the -t option when running a julia script in terminal/PowerShell/command line/etc.
+If your CPU has 24 threads, for example, then run: 
+julia -t 24 ./DCGAN.jl
+The specified number of threads should match the number of threads your CPU provides.
+=#
+
 using GradValley
 using GradValley.Layers
 using GradValley.Optimization
