@@ -315,11 +315,12 @@ end
 # construct a ResNet152
 function ResNet152(in_channels=3, classes=1000)
     return ResNet(in_channels, ResBottelneckBlock, [3, 8, 36, 3], use_bottelneck=true, classes=classes)
-end</code></pre><p>It is heavily recommended to run this file (or the file in which you include and use ResNet.jl), and any other files using GradValley, with multiple threads. Using multiple threads can make training and calculating predictions much faster. To do this, use the <code>-t</code> option when running a julia script in terminal/PowerShell/command line/etc. If your CPU has 24 threads, for example, then run:</p><pre><code class="nohighlight hljs">julia -t 24 ./ResNet.jl</code></pre><p>The specified number of threads should match the number of threads your CPU provides.</p><h2 id="Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ"><a class="docs-heading-anchor" href="#Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ">Deep Convolutional Generative Adverserial Network (DCGAN) on CelebA-HQ</a><a id="Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ-1"></a><a class="docs-heading-anchor-permalink" href="#Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ" title="Permalink"></a></h2><p>This example/tutorial can be seen as a reimplementation of <a href="https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html">PyTorch&#39;s DCGAN Tutorial</a> with the difference that we are using CelebA-HQ (approx. 30,000 images) here instead of the normal CelebA (approx. 200,000 images) dataset.  Note that this tutorial doens&#39;t cover the theory behind DCGANs, it just focuses on the implementation in Julia with GradValley.jl. You can find detailed information about the theory and a step by step implementation in the awesome <a href="https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html">PyTorch DCGAN Tutorial</a>.</p><p>The entire code, split into 4 files, can be found <a href="https://github.com/jonas208/GradValley.jl/blob/main/examples/GAN">here</a>.</p><h3 id="Data-Preparation"><a class="docs-heading-anchor" href="#Data-Preparation">Data Preparation</a><a id="Data-Preparation-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Preparation" title="Permalink"></a></h3><p>Because loading and preprocessing 30,000 images takes some time, it would be a big waste of time to reload and prepare the dataset for each new training. Instead, we outsource the data prepreprocessing in another script an save the prepared data as a <a href="https://github.com/JuliaIO/JLD2.jl">.jld2</a> file using <a href="https://github.com/JuliaIO/FileIO.jl">FileIO</a>.</p><p>We don&#39;t use CelebA-HQ because it&#39;s <em>high quality</em>. We could also just the use the normal version of CelebA, however, CelebA-HQ is a much smaller dataset and therefore easier to handle. I recommend to <a href="https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256">download the 256x256 version of CelebA-HQ</a> because we only need 64x64 images for the DCGAN.  Make sure all images are in a decompressed folder. This folder should contain 30,000 files.</p><p>The preprocessing of the images is done with help of <a href="https://github.com/JuliaImages/Images.jl">Images.jl</a> and <a href="https://github.com/JuliaImages/ImageTransformations.jl">ImageTransformations.jl</a> The included file <code>preprocessing_for_resnets.jl</code> is the file which is normally used by the pre-trained ResNets. It conatains some useful utilities for preprocessing images. So it is useful for this DCGAN Tutorial as well. We will use GradValley&#39;s <a href="../reference/#GradValley.DataLoader"><code>DataLoader</code></a> to load the images into batches.</p><p>You can skip the data preparation and download the preprocessed data <a href=".">here</a>.</p><p>Training for 10 epochs on the CPU takes approx. 5 hours.</p><pre><code class="language-julia hljs">using GradValley
+end</code></pre><p>It is heavily recommended to run this file (or the file in which you include and use ResNet.jl), and any other files using GradValley, with multiple threads. Using multiple threads can make training and calculating predictions much faster. To do this, use the <code>-t</code> option when running a julia script in terminal/PowerShell/command line/etc. If your CPU has 24 threads, for example, then run:</p><pre><code class="nohighlight hljs">julia -t 24 ./ResNet.jl</code></pre><p>The specified number of threads should match the number of threads your CPU provides.</p><h2 id="Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ"><a class="docs-heading-anchor" href="#Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ">Deep Convolutional Generative Adverserial Network (DCGAN) on CelebA-HQ</a><a id="Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ-1"></a><a class="docs-heading-anchor-permalink" href="#Deep-Convolutional-Generative-Adverserial-Network-(DCGAN)-on-CelebA-HQ" title="Permalink"></a></h2><p>This example/tutorial can be seen as a reimplementation of <a href="https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html">PyTorch&#39;s DCGAN Tutorial</a> with the difference that we are using CelebA-HQ (approx. 30,000 images) here instead of the normal CelebA (approx. 200,000 images) dataset.  Note that this tutorial doens&#39;t cover the theory behind DCGANs, it just focuses on the implementation in Julia with GradValley.jl. You can find detailed information about the theory and a step by step implementation in the awesome <a href="https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html">PyTorch DCGAN Tutorial</a>.</p><p>The entire code, split into 4 files, can be found <a href="https://github.com/jonas208/GradValley.jl/blob/main/examples/GAN">here</a>.</p><h3 id="Data-Preparation"><a class="docs-heading-anchor" href="#Data-Preparation">Data Preparation</a><a id="Data-Preparation-1"></a><a class="docs-heading-anchor-permalink" href="#Data-Preparation" title="Permalink"></a></h3><p>Because loading and preprocessing 30,000 images takes some time, it would be a big waste of time to reload and prepare the dataset for each new training. Instead, we outsource the data prepreprocessing in another script an save the prepared data as a <a href="https://github.com/JuliaIO/JLD2.jl">.jld2</a> file using <a href="https://github.com/JuliaIO/FileIO.jl">FileIO</a>.</p><p>We don&#39;t use CelebA-HQ because it&#39;s <em>high quality</em>. We could also just the use the normal version of CelebA, however, CelebA-HQ is a much smaller dataset and therefore easier to handle. I recommend to <a href="https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256">download the 256x256 version of CelebA-HQ</a> because we only need 64x64 images for the DCGAN.  Make sure all images are in a decompressed folder. This folder should contain 30,000 files.</p><p>The preprocessing of the images is done with help of <a href="https://github.com/JuliaImages/Images.jl">Images.jl</a> and <a href="https://github.com/JuliaImages/ImageTransformations.jl">ImageTransformations.jl</a> The included file <code>preprocessing_for_resnets.jl</code> is the file which is normally used by the pre-trained ResNets. It conatains some useful utilities for preprocessing images. So it is useful for this DCGAN Tutorial as well. We will use GradValley&#39;s <a href="../reference/#GradValley.DataLoader"><code>DataLoader</code></a> to load the images into batches.</p><p>You can skip the data preparation and download the preprocessed data <a href=".">here</a>.</p><pre><code class="language-julia hljs">using GradValley
 include(&quot;preprocessing_for_resnets.jl&quot;)
 using FileIO
 
-data_directory = &quot;your/path/to/celebA-HQ&quot; # replace the string with the real path to the folder containing the images
+# make sure there is an / at the end of the data_directory string
+data_directory = &quot;F:/archive (1)/celeba_hq_256/&quot; # replace the string with your path to the folder containing the images
 files = readdir(data_directory)
 dataset_size = length(files) # aka number of files/images
 
@@ -329,6 +330,8 @@ batch_size = 128
 
 # get function for the data loader that reads and transforms an image
 function get_image(index::Integer)
+    image = read_image_from_file(data_directory * files[index])
+    image_size = 64
     # convert the image to the element type dtype and scale the values accordingly
     image = convert_image_eltype(image, dtype)
     # resize equivalent to torchvision&#39;s resize with one integer given as size argument
@@ -339,15 +342,17 @@ function get_image(index::Integer)
     end
     # keeping the aspect ratio
     if height &gt;= width
-        new_size = (resize_size, convert(Int, trunc(resize_size * (height/width))), channels)
+        new_size = (image_size, convert(Int, trunc(image_size * (height/width))), channels)
     elseif width &gt; height
-        new_size = (convert(Int, trunc(resize_size * (width/height))), resize_size, channels)
+        new_size = (convert(Int, trunc(image_size * (width/height))), image_size, channels)
     end
     image = imresize(image, new_size)
+    #=
     # desired size after cropping 
-    crop_size = (224, 224)
+    crop_size = (image_size, image_size)
     # center crop equivalent to torchvision&#39;s center crop 
     image = center_crop(image, crop_size[1], crop_size[2])
+    =#
     # mean and standard deviation for normalization (separately for each channel)
     mean = [0.5, 0.5, 0.5]
     std = [0.5, 0.5, 0.5]
@@ -371,5 +376,337 @@ for (batch_index, (images_batch, )) in enumerate(dataloader)
     data[batch_index] = images_batch
 end
 # the vector containing the batches is stored in file_name under the &quot;data&quot; key
-save(file_name, Dict(&quot;data&quot; =&gt; data))
-</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« Reference</a><a class="docs-footer-nextpage" href="../(pre-trained)_models/">(Pre-Trained) Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Tuesday 8 August 2023 21:56">Tuesday 8 August 2023</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+save(file_name, Dict(&quot;data&quot; =&gt; data))</code></pre><h3 id="Training"><a class="docs-heading-anchor" href="#Training">Training</a><a id="Training-1"></a><a class="docs-heading-anchor-permalink" href="#Training" title="Permalink"></a></h3><p>We will continue with the actual training script. The structure is strongly orientated towards the mentioned PyTorch DCGAN tutorial. Most of the comments in the code were also adopted from the PyTorch tutorial. At the beginning, the hyperparameters and the models are defined. Most code is needed for the relativly complex training loop in the function <code>train</code>. In the first step, the discriminator is trained with a batch of only real images. In the second step, the discriminator is trained again.  This time, however, the discriminator is trained with only fake images which were generated by the generator model immediately before. In the final step, the generator is trained by backpropagating the generator loss through the discriminator and then through the generator model.  The parameters of the discriminator model are updated after step two, the generator&#39;s parameters are updated after step three.</p><p>The script works for both GPU and CPU. However, having a GPU is needed when you expect fast training. You can get some good results when training on the GPU on Float32 for approx. 25 epochs. On my RTX 3090, this took only 5 to 10 minutes.  If you use Float64 instead, you may can get good results after fewer epochs. GPUs are usually much faster on Float32, so using Float64 could only be useful if you train on the CPU. The CPU is also faster on Float32 than on Float64, but the speed difference is significantly smaller than on the GPU.  If you only have a CPU, it might be worth it to train on Float64 with fewer epochs, for example only for 10 epochs with Float64 instead of 25 with Float32. A 10 epoch long training with Float32 took approx. 5 hours on my Ryzen 9 5900X (while some other tasks were active in the background).</p><pre><code class="language-julia hljs">using GradValley
+using GradValley.Layers
+using GradValley.Optimization
+using CUDA
+using FileIO
+
+# Load the preprocessed data
+batches = load(&quot;CelebA-HQ_preprocessed.jld2&quot;, &quot;data&quot;)
+
+# Number of channels in the training images. For color images this is 3
+nc = 3
+
+# Size of z latent vector (i.e. size of generator input)
+nz = 100
+
+# Size of feature maps in generator
+ngf = 64
+
+# Size of feature maps in discriminator
+ndf = 64
+
+# Number of training epochs
+# e.g. 25 epochs on Float32 for both GPU and CPU or 10 epochs on Float64 for the CPU
+num_epochs = 25
+
+# Learning rate for optimizers
+lr = 0.0002
+
+# Beta1 hyperparameter for Adam optimizers
+beta1 = 0.5
+
+# eltype of data and parameters
+# Float32 or Float64
+dtype = Float32
+
+generator = SequentialContainer([
+    # input is Z, going into a convolution
+    ConvTranspose(nz, ngf * 8, (4, 4), stride=(1, 1), padding=(0, 0), use_bias=false),
+    BatchNorm(ngf * 8, activation_function=&quot;relu&quot;),
+    # state size. (ngf*8) x 4 x 4
+    ConvTranspose(ngf * 8, ngf * 4, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false),
+    BatchNorm(ngf * 4, activation_function=&quot;relu&quot;),
+    # state size. (ngf*4) x 8 x 8
+    ConvTranspose(ngf * 4, ngf * 2, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false),
+    BatchNorm(ngf * 2, activation_function=&quot;relu&quot;),
+    # state size. (ngf*2) x 16 x 16
+    ConvTranspose(ngf * 2, ngf, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false),
+    BatchNorm(ngf, activation_function=&quot;relu&quot;),
+    # state size. (ngf) x 32 x 32
+    ConvTranspose(ngf, nc, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false, activation_function=&quot;tanh&quot;)
+    # state size. (nc) x 64 x 64
+])
+
+discriminator = SequentialContainer([
+    # input is (nc) x 64 x 64
+    Conv(nc, ndf, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false, activation_function=&quot;leaky_relu:0.2&quot;),
+    # state size. (ndf) x 32 x 32
+    Conv(ndf, ndf * 2, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false),
+    BatchNorm(ndf * 2, activation_function=&quot;leaky_relu:0.2&quot;),
+    # state size. (ndf*2) x 16 x 16
+    Conv(ndf * 2, ndf * 4, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false),
+    BatchNorm(ndf * 4, activation_function=&quot;leaky_relu:0.2&quot;),
+    # state size. (ndf*4) x 8 x 8
+    Conv(ndf * 4, ndf * 8, (4, 4), stride=(2, 2), padding=(1, 1), use_bias=false),
+    BatchNorm(ndf * 8, activation_function=&quot;leaky_relu:0.2&quot;),
+    # state size. (ndf*8) x 4 x 4
+    Conv(ndf * 8, 1, (4, 4), stride=(1, 1), padding=(0, 0), use_bias=false, activation_function=&quot;sigmoid&quot;)
+])
+
+# check if CUDA is available
+use_cuda = CUDA.functional()
+# move the model to the correct device and convert its parameters to the specified dtype
+if use_cuda
+    println(&quot;The GPU is used&quot;)
+    module_to_eltype_device!(generator, element_type=dtype, device=&quot;gpu&quot;)
+    module_to_eltype_device!(discriminator, element_type=dtype, device=&quot;gpu&quot;)
+else
+    println(&quot;The CPU is used&quot;)
+    module_to_eltype_device!(generator, element_type=dtype, device=&quot;cpu&quot;)
+    module_to_eltype_device!(discriminator, element_type=dtype, device=&quot;cpu&quot;)
+end
+
+# Setup the loss function
+criterion = bce_loss
+
+# Create batch of latent vectors that we will use to visualize the progression of the generator
+if use_cuda
+    fixed_noise = CUDA.randn(dtype, 1, 1, nz, 64)
+else
+    fixed_noise = randn(dtype, 1, 1, nz, 64)
+end 
+
+# Establish convention for real and fake labels during training
+real_label = dtype(1)
+fake_label = dtype(0)
+
+# Setup Adam optimizers for both G and D
+optimizerD = Adam(discriminator, learning_rate=lr, beta1=beta1, beta2=0.999)
+optimizerG = Adam(generator, learning_rate=lr, beta1=beta1, beta2=0.999)
+
+function train()
+    # Training Loop
+
+    # Lists to keep track of progress
+    global img_list = []
+    G_losses = []
+    D_losses = []
+    global iters = 0
+
+    println(&quot;Starting Training Loop...&quot;)
+    # For each epoch
+    for epoch in 1:num_epochs
+
+        # save some interim results when using the CPU
+        if !use_cuda &amp;&amp; epoch == 6
+            file_name_img_list = &quot;img_list_intermediate_result.jld2&quot;
+            save(file_name_img_list, Dict(&quot;img_list&quot; =&gt; img_list))
+        end
+
+        # For each batch in the data
+        for (i, batch) in enumerate(batches)
+
+            ############################
+            # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
+            ###########################
+            ## Train with all-real batch
+            zero_gradients(discriminator)
+
+            if eltype(batch) != dtype
+                batch = convert(Array{dtype, 4}, batch)
+            end
+
+            # Format batch
+            if use_cuda
+                real = CuArray(batch)
+            else
+                real = batch
+            end
+
+            b_size = size(real)[end]
+            if use_cuda
+                label = CUDA.fill(real_label, (1, 1, 1, b_size))
+            else
+                label = fill(real_label, (1, 1, 1, b_size))
+            end
+            # Forward pass real batch through D
+            output = forward(discriminator, real)
+            # Calculate loss on all-real batch
+            errD_real, errD_real_derivative = criterion(output, label)
+            # Calculate gradients for D in backward pass
+            # println(&quot;Before backward&quot;)
+            backward(discriminator, errD_real_derivative)
+            # println(&quot;After backward&quot;)
+            D_x = sum(output) / length(output)
+
+            ## Train with all-fake batch
+            # Generate batch of latent vectors
+            if use_cuda
+                noise = CUDA.randn(dtype, 1, 1, nz, b_size)
+            else
+                noise = randn(dtype, 1, 1, nz, b_size)
+            end
+            # Generate fake image batch with G
+            fake = forward(generator, noise)
+            if use_cuda
+                CUDA.fill!(label, fake_label)
+            else
+                fill!(label, fake_label)
+            end
+            # Classify all fake batch with D
+            output = forward(discriminator, fake)
+            # Calculate D&#39;s loss on the all-fake batch
+            errD_fake, errD_fake_derivative = criterion(output, label)
+            # Calculate the gradients for this batch, accumulated (summed) with previous gradients
+            backward(discriminator, errD_fake_derivative)
+            D_G_z1 = sum(output) / length(output)
+            # Compute error of D as sum over the fake and the real batches
+            errD = errD_real + errD_fake
+            # Update D
+            step!(optimizerD)
+
+            ############################
+            # (2) Update G network: maximize log(D(G(z)))
+            ###########################
+            zero_gradients(generator)
+            # fake labels are real for generator cost
+            if use_cuda
+                CUDA.fill!(label, real_label) 
+            else
+                fill!(label, real_label) 
+            end
+            # Since we just updated D, perform another forward pass of all-fake batch through D
+            output = forward(discriminator, fake)
+            # Calculate G&#39;s loss based on this output
+
+            errG, errG_derivative = criterion(output, label)
+            # Calculate gradients for G
+            input_gradient = backward(discriminator, errG_derivative)
+            backward(generator, input_gradient)
+            D_G_z2 = sum(output) / length(output)
+            # Update G
+            step!(optimizerG)
+
+            # Output training stats
+            if i % 1 == 0 # i % 50 == 0
+                println(&quot;[$epoch/$num_epochs][$i/$(235)]\tLoss_D: $(round(errD, digits=4))\tLoss_G: $(round(errG, digits=4))\tD(x): $(round(D_x, digits=4))\tD(G(z)): $(round(D_G_z1, digits=4)) / $(round(D_G_z2, digits=4))&quot;)
+            end
+
+            # Save Losses for plotting later
+            push!(G_losses, errG)
+            push!(D_losses, errD)
+
+            # Check how the generator is doing by saving G&#39;s output on fixed_noise
+            if (iters % 50 == 0) || ((epoch == num_epochs) &amp;&amp; (i == length(batches)))
+                # testmode!(generator)
+                fake = forward(generator, fixed_noise)
+                # trainmode!(generator)
+                push!(img_list, fake)
+            end
+
+            global iters += 1
+        end
+    end
+end
+
+# Start training 
+if use_cuda
+    CUDA.@time train()
+else
+    @time train()
+end
+
+# convert the intermediate results on fixed_noise in img_list and the models back to the CPU for saving
+if use_cuda
+    for i in eachindex(img_list)
+        img_list[i] = convert(Array{dtype, 4}, img_list[i])
+    end
+    # note that clean_model_from_backward_information! runs automatically in the background when calling module_to_eltype_device! on a container
+    module_to_eltype_device!(discriminator, element_type=dtype, device=&quot;cpu&quot;)
+    module_to_eltype_device!(generator, element_type=dtype, device=&quot;cpu&quot;)
+end
+
+# Save the models 
+file_nameD = &quot;discriminator.jld2&quot;
+save(file_nameD, Dict(&quot;discriminator&quot; =&gt; discriminator))
+file_nameG = &quot;generator.jld2&quot;
+save(file_nameG, Dict(&quot;generator&quot; =&gt; generator))
+# Save the image list (intermediate results on fixed_noise)
+file_name_img_list = &quot;img_list.jld2&quot;
+save(file_name_img_list, Dict(&quot;img_list&quot; =&gt; img_list))</code></pre><p>It is heavily recommended to run this file, and any other files using GradValley, with multiple threads. Using multiple threads can make training and calculating predictions on the CPU much faster. To do this, use the <code>-t</code> option when running a julia script in terminal/PowerShell/command line/etc. If your CPU has 24 threads, for example, then run:</p><pre><code class="nohighlight hljs">julia -t 24 ./DCGAN.jl</code></pre><p>The specified number of threads should match the number of threads your CPU provides.</p><h3 id="Check-results-and-run-inference"><a class="docs-heading-anchor" href="#Check-results-and-run-inference">Check results and run inference</a><a id="Check-results-and-run-inference-1"></a><a class="docs-heading-anchor-permalink" href="#Check-results-and-run-inference" title="Permalink"></a></h3><p>The following script visualizes the intermidate outputs on <code>fixed_noise</code> by arrangeing them in a grid. To prevent the windows from closing immediately, <code>readline</code> is used to wait until enter is pressed in the console before displaying a new batch. The packages <a href="https://github.com/JuliaPlots/Plots.jl">Plots.jl</a> and <a href="https://github.com/JuliaGraphics/Measures.jl">Measures.jl</a> are used for plotting.</p><pre><code class="language-julia hljs">using Plots, Measures, Images, FileIO
+
+# plot all batches in img_list by arranging the images in a batch to a grid
+# press enter in the console to continue
+function show_img_list(img_list)
+    for (i, img_batch) in enumerate(img_list)
+        batch_size = size(img_batch)[end]
+
+        image_plots = []
+        for index_batch in 1:batch_size
+            image = @view img_batch[:, :, :, index_batch]
+            image = PermutedDimsArray(image, (3, 2, 1))
+
+            # normalize
+            min = minimum(image)
+            max = maximum(image)
+            norm(x) = (x - min) / (max - min)
+            image = norm.(image)
+
+            image = colorview(RGB, image)
+            image_plot = plot(image)
+            push!(image_plots, image_plot)
+        end 
+
+        # create a plot and display a gui window with the plot
+        p = plot(image_plots..., framestyle=:none, border=:none, leg=false, ticks=nothing, margin=-1.5mm, left_margin=-1mm, right_margin=-1mm) # , show=true
+        display(p)
+        # prevent the window from closing immediately
+        readline()
+
+        println(&quot;[$i/$(length(img_list))]&quot;)
+    end
+end
+
+file_name_img_list = &quot;img_list.jld2&quot;
+img_list = load(file_name_img_list, &quot;img_list&quot;)
+println(length(img_list))
+img_list = img_list[end-9:end] # show only the last 10 batches
+show_img_list(img_list)</code></pre><p>The following script loads the generator model and generates some new images and saves them as independent image files.</p><pre><code class="language-julia hljs">using GradValley
+using GradValley.Layers
+using Images
+
+num_images = 50
+name_prefix = &quot;fake&quot;
+format = &quot;.jpeg&quot;
+# make sure there is an / at the end of the dist string
+dist = &quot;inference/&quot;
+!isdir(dist) &amp;&amp; mkdir(dist)
+
+# Size of z latent vector (i.e. size of generator input)
+nz = 100
+
+# Float32 or Float64
+dtype = Float32
+
+# converts a tensor of size (width, height, channels) to a 2d RGB image array
+function tensor_to_image(tensor::AbstractArray{T, 3}) where T &lt;: AbstractFloat
+    image = PermutedDimsArray(tensor, (3, 2, 1))
+    image = colorview(RGB, image)
+    return image
+end
+
+file_nameG = &quot;generator.jld2&quot;
+generator = load(file_nameG, &quot;generator&quot;)
+# testmode!(generator)
+module_to_eltype_device!(generator, element_type=dtype, device=&quot;cpu&quot;)
+
+noise = randn(dtype, 1, 1, nz, num_images)
+fake = generator(noise)
+fake = @time generator(noise)
+
+for i in 1:num_images
+    image = @view fake[:, :, :, i]
+
+    # normalize
+    min = minimum(image)
+    max = maximum(image)
+    norm(x) = (x - min) / (max - min)
+    image = norm.(image)
+
+    image = tensor_to_image(image)
+
+    file_path = dist * name_prefix * string(i) * format
+    save(file_path, image)
+end</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../reference/">« Reference</a><a class="docs-footer-nextpage" href="../(pre-trained)_models/">(Pre-Trained) Models »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.25 on <span class="colophon-date" title="Thursday 10 August 2023 21:27">Thursday 10 August 2023</span>. Using Julia version 1.7.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
