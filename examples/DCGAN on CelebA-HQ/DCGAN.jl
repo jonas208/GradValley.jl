@@ -21,6 +21,7 @@ ndf = 64
 
 # Number of training epochs
 # e.g. 25 epochs on Float32 for both GPU and CPU or 10 epochs on Float64 for the CPU
+# if you have a good GPU, you can also try more epochs, for example with 75
 num_epochs = 25
 
 # Learning rate for optimizers
