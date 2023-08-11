@@ -3,11 +3,11 @@ include("preprocessing_for_resnets.jl")
 using FileIO
 
 # make sure there is an / at the end of the data_directory string
-data_directory = "F:/archive (1)/celeba_hq_256/" # replace the string with the real path to the folder containing the images
+data_directory = "F:/archive (1)/celeba_hq_256/" # replace the string with your path to the folder containing the images
 files = readdir(data_directory)
 dataset_size = length(files) # aka number of files/images
 
-dtype = Float64 # Float64 is heavily recommend here, we can switch to Float32 for training any way
+dtype = Float64 # Float64 is heavily recommended here, we can switch to Float32 for training any way
 image_size = 64
 batch_size = 128
 
@@ -21,7 +21,7 @@ function get_image(index::Integer)
     width, height, channels = size(image)
     # print an error if the number of channels is not equal to 3 (rgb-images), important for normalization
     if channels != 3
-        error("_preprocess: error while preprocessing, the image is expected to have 3 channels, however, $channels channel(s) was/were found")
+        error("get_image: error while preprocessing, the image is expected to have 3 channels, however, $channels channel(s) was/were found")
     end
     # keeping the aspect ratio
     if height >= width
@@ -30,12 +30,10 @@ function get_image(index::Integer)
         new_size = (convert(Int, trunc(image_size * (width/height))), image_size, channels)
     end
     image = imresize(image, new_size)
-    #=
-    # desired size after cropping 
+    # desired size after cropping
     crop_size = (image_size, image_size)
     # center crop equivalent to torchvision's center crop 
     image = center_crop(image, crop_size[1], crop_size[2])
-    =#
     # mean and standard deviation for normalization (separately for each channel)
     mean = [0.5, 0.5, 0.5]
     std = [0.5, 0.5, 0.5]
@@ -51,7 +49,7 @@ num_batches = dataloader.num_batches
 file_name = "CelebA-HQ_preprocessed.jld2" # you can change the file name/path here as well
 println("Number of batches: $num_batches")
 
-# data is a vector conatining the image batches
+# data is a vector containing the image batches
 data = Vector{Array{dtype, 4}}(undef, num_batches)
 # iterate over the data loader and add the batches to the data vector
 for (batch_index, (images_batch, )) in enumerate(dataloader)

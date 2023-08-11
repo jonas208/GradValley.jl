@@ -15,8 +15,8 @@ nz = 100
 # Float32 or Float64
 dtype = Float32
 
-# converts a tensor of size (width, height, channels) to a 2d RGB image array
-function tensor_to_image(tensor::AbstractArray{T, 3}) where T <: AbstractFloat
+# convert a tensor of size (width, height, channels) to a 2d RGB image array
+function tensor_to_image(tensor::AbstractArray{T, 3}) where T <: Real
     image = PermutedDimsArray(tensor, (3, 2, 1))
     image = colorview(RGB, image)
     return image

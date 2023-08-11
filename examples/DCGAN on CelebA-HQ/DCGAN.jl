@@ -1,12 +1,3 @@
-#=
-It is heavily recommended to run this file, and any other files using GradValley, with multiple threads.
-Using multiple threads can make training and calculating predictions on the CPU much faster.
-To do this, use the -t option when running a julia script in terminal/PowerShell/command line/etc.
-If your CPU has 24 threads, for example, then run: 
-julia -t 24 ./DCGAN.jl
-The specified number of threads should match the number of threads your CPU provides.
-=#
-
 using GradValley
 using GradValley.Layers
 using GradValley.Optimization
@@ -111,7 +102,7 @@ function train()
     # Training Loop
 
     # Lists to keep track of progress
-    global img_list = []
+    img_list = []
     G_losses = []
     D_losses = []
     global iters = 0
@@ -157,9 +148,7 @@ function train()
             # Calculate loss on all-real batch
             errD_real, errD_real_derivative = criterion(output, label)
             # Calculate gradients for D in backward pass
-            # println("Before backward")
             backward(discriminator, errD_real_derivative)
-            # println("After backward")
             D_x = sum(output) / length(output)
 
             ## Train with all-fake batch
@@ -201,9 +190,10 @@ function train()
             # Since we just updated D, perform another forward pass of all-fake batch through D
             output = forward(discriminator, fake)
             # Calculate G's loss based on this output
-
             errG, errG_derivative = criterion(output, label)
             # Calculate gradients for G
+            # The gradient flow does not reach the generator automatically, 
+            # so we have to do that manually by passing the gradient returned from the backward pass of the discriminator as the derivative_loss input to the generator backward call
             input_gradient = backward(discriminator, errG_derivative)
             backward(generator, input_gradient)
             D_G_z2 = sum(output) / length(output)
@@ -215,7 +205,7 @@ function train()
                 println("[$epoch/$num_epochs][$i/$(235)]\tLoss_D: $(round(errD, digits=4))\tLoss_G: $(round(errG, digits=4))\tD(x): $(round(D_x, digits=4))\tD(G(z)): $(round(D_G_z1, digits=4)) / $(round(D_G_z2, digits=4))")
             end
 
-            # Save Losses for plotting later
+            # Save Losses for potential plotting later
             push!(G_losses, errG)
             push!(D_losses, errD)
 
@@ -230,16 +220,18 @@ function train()
             global iters += 1
         end
     end
+
+    return img_list, G_losses, D_losses
 end
 
 # Start training 
 if use_cuda
-    CUDA.@time train()
+    img_list, G_losses, D_losses = CUDA.@time train()
 else
-    @time train()
+    img_list, G_losses, D_losses = @time train()
 end
 
-# convert the intermediate results on fixed_noise in img_list and the models back to the CPU for saving
+# move the intermediate results on fixed_noise in img_list and the models back to the CPU for saving
 if use_cuda
     for i in eachindex(img_list)
         img_list[i] = convert(Array{dtype, 4}, img_list[i])

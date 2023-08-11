@@ -1,6 +1,6 @@
 using Plots, Measures, Images, FileIO
 
-# plot all batches in img_list by arranging the images in a batch to a grid
+# plot all batches in img_list by arranging the images in a batch in a grid
 # press enter in the console to continue
 function show_img_list(img_list)
     for (i, img_batch) in enumerate(img_list)
@@ -27,6 +27,8 @@ function show_img_list(img_list)
         display(p)
         # prevent the window from closing immediately
         readline()
+        # save the plot as an image file 
+        savefig(p, "img_list_grid_$i.png")
 
         println("[$i/$(length(img_list))]")
     end
