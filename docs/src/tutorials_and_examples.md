@@ -560,7 +560,7 @@ In the final step, the generator is trained by backpropagating the generator los
 The parameters of the discriminator model are updated after step two, the generator's parameters are updated after step three.
 
 The script works for both GPU and CPU. However, having a GPU is required when you expect fast training. You can get some good results when training
-on the GPU on Float32 for approx. 25 epochs. On my RTX 3090, this took only 5 to 10 minutes. 
+on the GPU on Float32 for approx. 25 epochs. On my RTX 3090, this took only 5 to 10 minutes. Training for more epochs (e.g. 75) can further improve results.
 If you use Float64 instead, you may can get good results after fewer epochs. GPUs are usually much faster on Float32, so using Float64 might only make sense if you train on the CPU.
 The CPU is also faster on Float32 than on Float64, but the speed difference is significantly smaller than on the GPU. 
 If you only have a CPU, it might be worth it to train on Float64 with fewer epochs, for example only for 10 epochs with Float64 instead of 25 with Float32.
@@ -590,6 +590,7 @@ ndf = 64
 
 # Number of training epochs
 # e.g. 25 epochs on Float32 for both GPU and CPU or 10 epochs on Float64 for the CPU
+# if you have a good GPU, you can also try more epochs, for example with 75
 num_epochs = 25
 
 # Learning rate for optimizers
@@ -937,3 +938,7 @@ These are some example results after 25 epochs of training on Float32:
 
 ![DCGAN example result 1](./assets/dcgan_example_1.png)
 ![DCGAN example result 2](./assets/dcgan_example_2.jpeg)
+
+These are some example results after 75 epochs of training on Float32:
+
+![DCGAN example result 3](./assets/dcgan_example_3_75_epochs.png)
