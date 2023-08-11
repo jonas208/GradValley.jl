@@ -464,29 +464,27 @@ julia -t 24 ./ResNet.jl
 ```
 The specified number of threads should match the number of threads your CPU provides.
 
-## Deep Convolutional Generative Adverserial Network (DCGAN) on CelebA-HQ
+## Deep Convolutional Generative Adversarial Network (DCGAN) on CelebA-HQ
 
 This example/tutorial can be seen as a reimplementation of [PyTorch's DCGAN Tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html) with the difference
 that we are using CelebA-HQ (approx. 30,000 images) here instead of the normal CelebA (approx. 200,000 images) dataset. 
-Note that this tutorial doens't cover the theory behind DCGANs, it just focuses on the implementation in Julia with GradValley.jl.
+Note that this tutorial doesn't cover the theory behind DCGANs, it just focuses on the implementation in Julia with GradValley.jl.
 You can find detailed information about the theory and a step by step implementation in the awesome [PyTorch DCGAN Tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html).
 
-The entire code, split into 4 files, can be found [here](https://github.com/jonas208/GradValley.jl/blob/main/examples/GAN).
+The entire code, split into 5 files, can be found [here](https://github.com/jonas208/GradValley.jl/blob/main/examples/GAN).
 
-### Data Preparation
+### Data preparation
 
 Because loading and preprocessing 30,000 images takes some time, it would be a big waste of time to reload and prepare the dataset for each new training.
-Instead, we outsource the data prepreprocessing in another script an save the prepared data as a [.jld2](https://github.com/JuliaIO/JLD2.jl) file using [FileIO](https://github.com/JuliaIO/FileIO.jl).
+Instead, we outsource the data preprocessing to another script and save the prepared data as a [.jld2](https://github.com/JuliaIO/JLD2.jl) file using [FileIO](https://github.com/JuliaIO/FileIO.jl).
 
 We don't use CelebA-HQ because it's *high quality*. We could also just the use the normal version of CelebA, however, CelebA-HQ is a much smaller dataset and therefore easier to handle.
 I recommend to [download the 256x256 version of CelebA-HQ](https://www.kaggle.com/datasets/badasstechie/celebahq-resized-256x256) because we only need 64x64 images for the DCGAN. 
 Make sure all images are in a decompressed folder. This folder should contain 30,000 files.
 
-The preprocessing of the images is done with help of [Images.jl](https://github.com/JuliaImages/Images.jl) and [ImageTransformations.jl](https://github.com/JuliaImages/ImageTransformations.jl)
-The included file `preprocessing_for_resnets.jl` is the file which is normally used by the pre-trained ResNets. It conatains some useful utilities for preprocessing images. So it is useful for this DCGAN Tutorial as well.
+The preprocessing of the images is done with the help of [Images.jl](https://github.com/JuliaImages/Images.jl) and [ImageTransformations.jl](https://github.com/JuliaImages/ImageTransformations.jl)
+The included file `preprocessing_for_resnets.jl` is the file which is normally used by the pre-trained ResNets. It contains some useful utilities for preprocessing images. So it is useful for this DCGAN Tutorial as well.
 We will use GradValley's [`DataLoader`](@ref) to load the images into batches.
-
-You can skip the data preparation and download the preprocessed data [here]().
 
 ```julia
 using GradValley
@@ -498,7 +496,7 @@ data_directory = "F:/archive (1)/celeba_hq_256/" # replace the string with your 
 files = readdir(data_directory)
 dataset_size = length(files) # aka number of files/images
 
-dtype = Float64 # Float64 is heavily recommend here, we can switch to Float32 for training any way
+dtype = Float64 # Float64 is heavily recommended here, we can switch to Float32 for training any way
 image_size = 64
 batch_size = 128
 
@@ -512,7 +510,7 @@ function get_image(index::Integer)
     width, height, channels = size(image)
     # print an error if the number of channels is not equal to 3 (rgb-images), important for normalization
     if channels != 3
-        error("_preprocess: error while preprocessing, the image is expected to have 3 channels, however, $channels channel(s) was/were found")
+        error("get_image: error while preprocessing, the image is expected to have 3 channels, however, $channels channel(s) was/were found")
     end
     # keeping the aspect ratio
     if height >= width
@@ -521,12 +519,10 @@ function get_image(index::Integer)
         new_size = (convert(Int, trunc(image_size * (width/height))), image_size, channels)
     end
     image = imresize(image, new_size)
-    #=
-    # desired size after cropping 
+    # desired size after cropping
     crop_size = (image_size, image_size)
     # center crop equivalent to torchvision's center crop 
     image = center_crop(image, crop_size[1], crop_size[2])
-    =#
     # mean and standard deviation for normalization (separately for each channel)
     mean = [0.5, 0.5, 0.5]
     std = [0.5, 0.5, 0.5]
@@ -542,7 +538,7 @@ num_batches = dataloader.num_batches
 file_name = "CelebA-HQ_preprocessed.jld2" # you can change the file name/path here as well
 println("Number of batches: $num_batches")
 
-# data is a vector conatining the image batches
+# data is a vector containing the image batches
 data = Vector{Array{dtype, 4}}(undef, num_batches)
 # iterate over the data loader and add the batches to the data vector
 for (batch_index, (images_batch, )) in enumerate(dataloader)
@@ -555,17 +551,17 @@ save(file_name, Dict("data" => data))
 
 ### Training
 
-We will continue with the actual training script. The structure is strongly orientated towards the mentioned PyTorch DCGAN tutorial.
+We will continue with the actual training script. The structure is strongly orientated towards the mentioned [PyTorch DCGAN tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html).
 Most of the comments in the code were also adopted from the PyTorch tutorial.
-At the beginning, the hyperparameters and the models are defined. Most code is needed for the relativly complex training loop in the function `train`.
+At the beginning, the hyperparameters and the models are defined. Most code is needed for the relatively complex training loop in the function `train`.
 In the first step, the discriminator is trained with a batch of only real images. In the second step, the discriminator is trained again. 
 This time, however, the discriminator is trained with only fake images which were generated by the generator model immediately before.
-In the final step, the generator is trained by backpropagating the generator loss through the discriminator and then through the generator model. 
+In the final step, the generator is trained by backpropagating the generator loss through the discriminator and then through the generator model.
 The parameters of the discriminator model are updated after step two, the generator's parameters are updated after step three.
 
-The script works for both GPU and CPU. However, having a GPU is needed when you expect fast training. You can get some good results when training
+The script works for both GPU and CPU. However, having a GPU is required when you expect fast training. You can get some good results when training
 on the GPU on Float32 for approx. 25 epochs. On my RTX 3090, this took only 5 to 10 minutes. 
-If you use Float64 instead, you may can get good results after fewer epochs. GPUs are usually much faster on Float32, so using Float64 could only be useful if you train on the CPU.
+If you use Float64 instead, you may can get good results after fewer epochs. GPUs are usually much faster on Float32, so using Float64 might only make sense if you train on the CPU.
 The CPU is also faster on Float32 than on Float64, but the speed difference is significantly smaller than on the GPU. 
 If you only have a CPU, it might be worth it to train on Float64 with fewer epochs, for example only for 10 epochs with Float64 instead of 25 with Float32.
 A 10 epoch long training with Float32 took approx. 5 hours on my Ryzen 9 5900X (while some other tasks were active in the background).
@@ -675,7 +671,7 @@ function train()
     # Training Loop
 
     # Lists to keep track of progress
-    global img_list = []
+    img_list = []
     G_losses = []
     D_losses = []
     global iters = 0
@@ -721,9 +717,7 @@ function train()
             # Calculate loss on all-real batch
             errD_real, errD_real_derivative = criterion(output, label)
             # Calculate gradients for D in backward pass
-            # println("Before backward")
             backward(discriminator, errD_real_derivative)
-            # println("After backward")
             D_x = sum(output) / length(output)
 
             ## Train with all-fake batch
@@ -765,9 +759,10 @@ function train()
             # Since we just updated D, perform another forward pass of all-fake batch through D
             output = forward(discriminator, fake)
             # Calculate G's loss based on this output
-
             errG, errG_derivative = criterion(output, label)
             # Calculate gradients for G
+            # The gradient flow does not reach the generator automatically, 
+            # so we have to do that manually by passing the gradient returned from the backward pass of the discriminator as the derivative_loss input to the generator backward call
             input_gradient = backward(discriminator, errG_derivative)
             backward(generator, input_gradient)
             D_G_z2 = sum(output) / length(output)
@@ -779,7 +774,7 @@ function train()
                 println("[$epoch/$num_epochs][$i/$(235)]\tLoss_D: $(round(errD, digits=4))\tLoss_G: $(round(errG, digits=4))\tD(x): $(round(D_x, digits=4))\tD(G(z)): $(round(D_G_z1, digits=4)) / $(round(D_G_z2, digits=4))")
             end
 
-            # Save Losses for plotting later
+            # Save Losses for potential plotting later
             push!(G_losses, errG)
             push!(D_losses, errD)
 
@@ -794,16 +789,18 @@ function train()
             global iters += 1
         end
     end
+
+    return img_list, G_losses, D_losses
 end
 
 # Start training 
 if use_cuda
-    CUDA.@time train()
+    img_list, G_losses, D_losses = CUDA.@time train()
 else
-    @time train()
+    img_list, G_losses, D_losses = @time train()
 end
 
-# convert the intermediate results on fixed_noise in img_list and the models back to the CPU for saving
+# move the intermediate results on fixed_noise in img_list and the models back to the CPU for saving
 if use_cuda
     for i in eachindex(img_list)
         img_list[i] = convert(Array{dtype, 4}, img_list[i])
@@ -825,7 +822,7 @@ save(file_name_img_list, Dict("img_list" => img_list))
 
 It is heavily recommended to run this file, and any other files using GradValley, with multiple threads.
 Using multiple threads can make training and calculating predictions on the CPU much faster.
-To do this, use the ```-t``` option when running a julia script in terminal/PowerShell/command line/etc.
+To do this, use the `-t` option when running a julia script in terminal/PowerShell/command line/etc.
 If your CPU has 24 threads, for example, then run:
 ```
 julia -t 24 ./DCGAN.jl
@@ -834,14 +831,14 @@ The specified number of threads should match the number of threads your CPU prov
 
 ### Check results and run inference
 
-The following script visualizes the intermidate outputs on `fixed_noise` by arrangeing them in a grid.
-To prevent the windows from closing immediately, `readline` is used to wait until enter is pressed in the console before displaying a new batch.
+The following script visualizes the intermediate outputs on `fixed_noise` by arranging them in a grid.
+To prevent the plot windows from closing immediately, `readline` is used to wait until enter is pressed in the console before displaying a new batch.
 The packages [Plots.jl](https://github.com/JuliaPlots/Plots.jl) and [Measures.jl](https://github.com/JuliaGraphics/Measures.jl) are used for plotting.
 
 ```julia
 using Plots, Measures, Images, FileIO
 
-# plot all batches in img_list by arranging the images in a batch to a grid
+# plot all batches in img_list by arranging the images in a batch in a grid
 # press enter in the console to continue
 function show_img_list(img_list)
     for (i, img_batch) in enumerate(img_list)
@@ -868,6 +865,8 @@ function show_img_list(img_list)
         display(p)
         # prevent the window from closing immediately
         readline()
+        # save the plot as an image file 
+        savefig(p, "img_list_grid_$i.png")
 
         println("[$i/$(length(img_list))]")
     end
@@ -900,8 +899,8 @@ nz = 100
 # Float32 or Float64
 dtype = Float32
 
-# converts a tensor of size (width, height, channels) to a 2d RGB image array
-function tensor_to_image(tensor::AbstractArray{T, 3}) where T <: AbstractFloat
+# convert a tensor of size (width, height, channels) to a 2d RGB image array
+function tensor_to_image(tensor::AbstractArray{T, 3}) where T <: Real
     image = PermutedDimsArray(tensor, (3, 2, 1))
     image = colorview(RGB, image)
     return image
@@ -931,3 +930,10 @@ for i in 1:num_images
     save(file_path, image)
 end
 ```
+
+### Results
+
+These are some example results after 25 epochs of training on Float32:
+
+![DCGAN example result 1](./assets/dcgan_example_1.png)
+![DCGAN example result 2](./assets/dcgan_example_2.jpeg)
