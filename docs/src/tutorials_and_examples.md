@@ -934,11 +934,13 @@ end
 
 ### Results
 
-These are some example results after 25 epochs of training on Float32:
+These are some example results after 25 and after 75 epochs of training on Float32:
 
 ![DCGAN example result 1](./assets/dcgan_example_1.png)
-![DCGAN example result 2](./assets/dcgan_example_2.jpeg)
+![DCGAN example result 2](./assets/dcgan_example_2.png)
+![DCGAN example result 3](./assets/dcgan_example_3.png)
 
-These are some example results after 75 epochs of training on Float32:
+Bonus: I used [this tool](https://www.aiseesoft.com/image-upscaler/) for upscaling the first image grid. After upscaling 2 times, I got the following result.
+The used image upscaler tool works with AI too, so please note that the upscaler can add details to the image that weren't there before.
 
-![DCGAN example result 3](./assets/dcgan_example_3_75_epochs.png)
+![DCGAN example result 1 upscaled 2x](./assets/dcgan_example_1_upscaled_2x.png)
