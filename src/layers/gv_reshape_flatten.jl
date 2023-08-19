@@ -23,7 +23,7 @@ This layer uses the standard [reshape function](https://docs.julialang.org/en/v1
 # flatten the input of size 28*28*1 to a vector of length 784 (each plus batch dimension of course)
 julia> m = Reshape((784, ))
 # computing the output of the layer (with random inputs)
-julia> input = rand(28, 28, 1, 32)
+julia> input = rand(Float32, 28, 28, 1, 32)
 julia> output = forward(m, input)
 julia> size(output) # specified size plus batch dimension
 (784, 32)

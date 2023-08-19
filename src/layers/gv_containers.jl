@@ -24,7 +24,7 @@ a new SequentialContainer containing all the requested submodules/layers is init
 # a simple chain of fully connected layers
 julia> m = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # computing the output of the module (with random inputs)
-julia> input = rand(1000, 32)
+julia> input = rand(Float32, 1000, 32)
 julia> output = forward(m, input)
 
 # a more complicated example with with nested submodules
@@ -34,7 +34,7 @@ julia> feature_extractor = SequentialContainer([feature_extractor_part_1, featur
 julia> classifier = SequentialContainer([Fc(256, 120, activation_function="relu"), Fc(120, 84, activation_function="relu"), Fc(84, 10)])
 julia> m = SequentialContainer([feature_extractor, Reshape((256, )), classifier, Softmax(dims=1)])
 # computing the output of the module (with random inputs)
-julia> input = rand(28, 28, 1, 32)
+julia> input = rand(Float32, 28, 28, 1, 32)
 julia> output = forward(m, input)
 
 # indexing 
@@ -154,9 +154,9 @@ as the first argument and the derivative of the loss as the second argument. No 
 # define a model
 julia> m = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # compute the output of the model (with random inputs)
-julia> output = forward(m, rand(1000, 32))
+julia> output = forward(m, rand(Float32, 1000, 32))
 # use a loss function (with random data as target values) and save the derivative of the loss
-julia> loss, derivative_loss = mse_loss(output, rand(125, 32)) # note that GradValley.Optimization.mse_loss must be imported
+julia> loss, derivative_loss = mse_loss(output, rand(Float32, 125, 32)) # note that GradValley.Optimization.mse_loss must be imported
 # before the gradients are recalculated, the old gradients should always be reset first
 zero_gradients(m)
 # backpropagation 
@@ -222,7 +222,7 @@ julia> function forward_pass(layers::Vector, input::AbstractArray)
        end
 julia> m = GraphContainer(forward_pass, layers)
 # computing the output of the module (with random inputs)
-julia> input = rand(1000, 32)
+julia> input = rand(Float32, 1000, 32)
 julia> output = forward(m, input)
 
 # a more complicated example: implementation of an inverted residual block
@@ -239,7 +239,7 @@ julia> function forward_pass(layers::Vector, input::AbstractArray)
        end
 julia> m = GraphContainer(forward_pass, layers)
 # computing the output of the module (with random inputs)
-julia> input = rand(50, 50, 16, 32)
+julia> input = rand(Float32, 50, 50, 16, 32)
 julia> output = forward(m, input)
 
 # a simple example with a polynomial, just to show that it is possible to use the GraphContainer like an automatic differentiation (AD) tool 
@@ -348,10 +348,10 @@ julia> function forward_pass(layers::Vector, input::AbstractArray)
        end
 julia> m = GraphContainer(forward_pass, layers)
 # compute the output of the model (with random inputs)
-julia> input = rand(1000, 32)
+julia> input = rand(Float32, 1000, 32)
 julia> output = forward(m, input)
 # use a loss function (with random data as target values) and save the derivative of the loss
-julia> loss, derivative_loss = mse_loss(output, rand(125, 32)) # note that GradValley.Optimization.mse_loss must be imported
+julia> loss, derivative_loss = mse_loss(output, rand(Float32, 125, 32)) # note that GradValley.Optimization.mse_loss must be imported
 # before the gradients are (re)calculated, the old gradients should always be reset first
 zero_gradients(m)
 # backpropagation 

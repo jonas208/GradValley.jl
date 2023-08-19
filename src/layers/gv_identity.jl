@@ -23,7 +23,7 @@ If an activation function is used, the activation function will be applied to th
 # an independent relu activation
 julia> m = Identity(activation_function="relu")
 # computing the output of the layer (with random inputs)
-julia> input = rand(10, 32)
+julia> input = rand(Float32, 10, 32)
 julia> output = forward(m, input)
 ```
 """

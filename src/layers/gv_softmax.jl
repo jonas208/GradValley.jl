@@ -38,7 +38,7 @@ So each slice along the specified dimension will sum to 1. All values in the out
 julia> m = Softmax(dims=1)
 # computing the output of the layer 
 # (with random input data which could represent a batch of unnormalized output values from a classifier)
-julia> input = rand(10, 32)
+julia> input = rand(Float32, 10, 32)
 julia> output = forward(m, input)
 # summing up the values in the output along the first dimension result in a batch of 32 ones
 julia> sum(output, dims=1)

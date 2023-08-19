@@ -68,7 +68,7 @@ julia> m = BatchNorm(3)
 julia> trainmode!(m)
 julia> testmode!(m)
 # compute the output of the layer (with random inputs)
-julia> input = rand(50, 50, 3, 32)
+julia> input = rand(Float32, 50, 50, 3, 32)
 julia> output = forward(m, input)
 ```
 """

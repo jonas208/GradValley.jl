@@ -52,7 +52,7 @@ julia> m = Conv(3, 6, (3, 5), stride=(2, 1), padding=(2, 1))
 # (because groups=in_channels and out_channles is divisible by groups, it is even a depthwise convolution)
 julia> m = Conv(3, 6, (3, 5), stride=(2, 1), padding=(4, 2), dilation=(3, 1), groups=3)
 # computing the output of the layer (with random inputs)
-julia> input = rand(50, 50, 3, 32)
+julia> input = rand(Float32, 50, 50, 3, 32)
 julia> output = forward(m, input)
 ```
 """
@@ -247,7 +247,7 @@ A nice looking visualization of (transposed) convolution can be found [here](htt
 # square kernels and fully default values of keyword arguments
 julia> m = ConvTranspose(6, 3, (5, 5))
 # upsampling an output from normal convolution like in GANS, Unet, etc.
-julia> input = forward(Conv(3, 6, (5, 5)), rand(50, 50, 3, 32))
+julia> input = forward(Conv(3, 6, (5, 5)), rand(Float32, 50, 50, 3, 32))
 julia> output = forward(m, input)
 # the size of the output of the transposed convolution is equal to the size of the original input of the normal convolution
 julia> size(output)

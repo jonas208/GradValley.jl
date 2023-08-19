@@ -42,7 +42,7 @@ to the output neuron *o* where all the incoming signals are summed up.
 # a fully connected layer with 784 input features and 120 output features
 julia> m = Fc(784, 120)
 # computing the output of the layer (with random inputs)
-julia> input = rand(784, 32)
+julia> input = rand(Float32, 784, 32)
 julia> output = forward(m, input)
 ```
 """

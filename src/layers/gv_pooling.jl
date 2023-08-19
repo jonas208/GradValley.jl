@@ -41,7 +41,7 @@ julia> m = MaxPool((3, 3))
 # pooling of non-square window with custom stride and padding
 julia> m = MaxPool((3, 2), stride=(2, 1), padding=(1, 1))
 # computing the output of the layer (with random inputs)
-julia> input = rand(50, 50, 3, 32)
+julia> input = rand(Float32, 50, 50, 3, 32)
 julia> output = forward(m, input)
 ```
 """
@@ -169,7 +169,7 @@ julia> m = AvgPool((3, 3))
 # pooling of non-square window with custom stride and padding
 julia> m = AvgPool((3, 2), stride=(2, 1), padding=(1, 1))
 # computing the output of the layer (with random inputs)
-julia> input = rand(50, 50, 3, 32)
+julia> input = rand(Float32, 50, 50, 3, 32)
 julia> output = forward(m, input)
 ```
 """
@@ -295,7 +295,7 @@ have already been calculated beforehand.
 # target output size of 5x5
 julia> m = AdaptiveMaxPool((5, 5))
 # computing the output of the layer (with random inputs)
-julia> input = rand(50, 50, 3, 32)
+julia> input = rand(Float32, 50, 50, 3, 32)
 julia> output = forward(m, input)
 ```
 """
@@ -410,7 +410,7 @@ have already been calculated beforehand.
 # target output size of 5x5
 julia> m = AdaptiveAvgPool((5, 5))
 # computing the output of the layer (with random inputs)
-julia> input = rand(50, 50, 3, 32)
+julia> input = rand(Float32, 50, 50, 3, 32)
 julia> output = forward(m, input)
 ```
 """
