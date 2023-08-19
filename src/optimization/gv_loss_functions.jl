@@ -162,7 +162,7 @@ Calculate the binary cross entropy loss (with optional reduction to a single los
 
 # Definition
 ``L`` is the loss value which will be returned. If `return_derivative` is true, then an array with the same shape as prediction/target is returned as well, it contains the partial derivatives of ``L`` w.r.t. to each prediction value: ``\frac{\partial L}{\partial p_i}``, where ``p_i`` in one prediction value.
-If `reduction_method` is `nothing`, the element-wise computed losses are returned. Note that for `reduction_method=nothing`, the derivative is just the same as when `reduction_method="sum"`. ``w_i`` is one rescaling weight value.
+If `reduction_method` is `nothing`, the element-wise computed losses are returned. Note that for `reduction_method=nothing`, the derivative is just the same as when `reduction_method="sum"`.
 The element-wise calculation can be defined as (where ``t_i`` is one target value and ``l_i`` is one loss value): 
 ```math
 \begin{align*}
@@ -181,16 +181,14 @@ L;\frac{\partial L}{\partial p_i} = \begin{cases}\frac{1}{n}\sum_{i=1}^{n} l_i; 
 # define a model
 julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # create some random input data
-julia> input = rand(1000, 32)
+julia> input = rand(Float32, 1000, 32)
 # compute the output of the model
 julia> output = forward(model, input)
 # generate some random target values 
-julia> target = rand(size(output)...)
-# generate some random rescaling weight values (without a batch dimension)
-julia> weight = rand(size(output)[2:end]...)
+julia> target = rand(Float32, size(output)...)
 # compute the loss and it's derivative (with default reduction method "mean")
-julia> loss, loss_derivative = bce_loss(output, target, weight=weight)
-# computet the gradients 
+julia> loss, loss_derivative = bce_loss(output, target)
+# computet the gradients
 julia> backward(model, loss_derivative)
 ```
 """
