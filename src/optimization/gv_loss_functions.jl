@@ -166,13 +166,13 @@ If `reduction_method` is `nothing`, the element-wise computed losses are returne
 The element-wise calculation can be defined as (where ``t_i`` is one target value and ``l_i`` is one loss value): 
 ```math
 \begin{align*}
-l_i = -w_n(t_i \cdot \log(p_i + \epsilon) + (1 - t_i) \cdot \log(1 - p_i + \epsilon))
+l_i = -t_i \cdot \log(p_i + \epsilon) - (1 - t_i) \cdot \log(1 - p_i + \epsilon)
 \end{align*}
 ```
 Then, ``L`` and ``\frac{\partial L}{\partial p_i}`` differ a little bit from case to case (``n`` is the number of values in `prediction`/`target`):
 ```math
 \begin{align*}
-L;\frac{\partial L}{\partial p_i} = \begin{cases}\frac{1}{n}\sum_{i=1}^{n} l_i; \frac{1}{n}(\frac{-w_i t_i}{p_i} - \frac{-w_i + w_i t_i}{1 - p_i}) &\text{for reduction\_method="mean"}\\\sum_{i=1}^{n} l_i; \frac{-w_i t_i}{p_i} - \frac{-w_i + t_i w_i}{1 - p_i} &\text{for reduction\_method="sum"}\end{cases}
+L;\frac{\partial L}{\partial p_i} = \begin{cases}\frac{1}{n}\sum_{i=1}^{n} l_i; \frac{1}{n}(\frac{-t_i}{p_i + \epsilon} - \frac{t_i - 1}{1 - p_i + \epsilon}) &\text{for reduction\_method="mean"}\\\sum_{i=1}^{n} l_i;  &\text{for reduction\_method="sum"}\end{cases}
 \end{align*}
 ```
 
