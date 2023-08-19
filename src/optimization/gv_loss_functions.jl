@@ -172,7 +172,7 @@ l_i = -t_i \cdot \log(p_i + \epsilon) - (1 - t_i) \cdot \log(1 - p_i + \epsilon)
 Then, ``L`` and ``\frac{\partial L}{\partial p_i}`` differ a little bit from case to case (``n`` is the number of values in `prediction`/`target`):
 ```math
 \begin{align*}
-L;\frac{\partial L}{\partial p_i} = \begin{cases}\frac{1}{n}\sum_{i=1}^{n} l_i; \frac{1}{n}(\frac{-t_i}{p_i + \epsilon} - \frac{t_i - 1}{1 - p_i + \epsilon}) &\text{for reduction\_method="mean"}\\\sum_{i=1}^{n} l_i;  &\text{for reduction\_method="sum"}\end{cases}
+L;\frac{\partial L}{\partial p_i} = \begin{cases}\frac{1}{n}\sum_{i=1}^{n} l_i; \frac{1}{n}(\frac{-t_i}{p_i + \epsilon} - \frac{t_i - 1}{1 - p_i + \epsilon}) &\text{for reduction\_method="mean"}\\\sum_{i=1}^{n} l_i; \frac{-t_i}{p_i + \epsilon} - \frac{t_i - 1}{1 - p_i + \epsilon} &\text{for reduction\_method="sum"}\end{cases}
 \end{align*}
 ```
 
