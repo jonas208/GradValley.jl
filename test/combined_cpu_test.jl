@@ -8,13 +8,13 @@ Note that this model makes absolutely no sense, it is only intended to test as m
 """
 function test_layer_initializations()
     # test each initialization steps of all available layers
-    conv = Conv(3, 6, (5, 5), stride=(1, 2), padding=(0, 1), dilation=(0, 2), groups=3, activation_function="relu", init_mode="default_uniform", use_bias=true)
-    depthwise_conv = Conv(6, 12, (5, 5), stride=(1, 2), padding=(0, 1), dilation=(0, 2), groups=6, activation_function="tanh", init_mode="default", use_bias=true) # depthwise-conv because groups=in_channels
-    conv_transpose = ConvTranspose(12, 6, (5, 5), stride=(1, 2), padding=(0, 1), dilation=(0, 2), output_padding=(0, 1), groups=2)
+    conv = Conv(3, 6, (5, 5), stride=(1, 2), padding=(0, 1), dilation=(1, 2), groups=3, activation_function="relu", init_mode="default_uniform", use_bias=true)
+    depthwise_conv = Conv(6, 12, (5, 5), stride=(1, 2), padding=(0, 1), dilation=(1, 2), groups=6, activation_function="tanh", init_mode="default", use_bias=true) # depthwise-conv because groups=in_channels
+    conv_transpose = ConvTranspose(12, 6, (5, 5), stride=(1, 2), padding=(0, 1), dilation=(1, 2), output_padding=(0, 1), groups=2)
     identity = Identity(activation_function="sigmoid")
     batch_norm = BatchNorm(6, epsilon=1e-05, momentum=0.1, affine=true, track_running_stats=true, activation_function=nothing)
-    max_pool = MaxPool((2, 2), stride=(1, 2), padding=(0, 1), dilation=(0, 2), activation_function="sigmoid")
-    avg_pool = AvgPool((2, 2), stride=(1, 2), padding=(0, 1), dilation=(0, 2), activation_function=nothing)
+    max_pool = MaxPool((2, 2), stride=(1, 2), padding=(0, 1), dilation=(1, 1), activation_function="sigmoid")
+    avg_pool = AvgPool((2, 2), stride=(1, 2), padding=(0, 1), dilation=(1, 1), activation_function=nothing)
     adaptive_max_pool = AdaptiveMaxPool((50, 50), activation_function=nothing)
     adaptive_avg_pool = AdaptiveAvgPool((5, 5), activation_function=nothing)
     flatten = Reshape((150, )) # features = C*H*W = 12*5*5 = 300
