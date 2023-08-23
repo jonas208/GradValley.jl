@@ -66,7 +66,7 @@ function (softmax_layer::Softmax)(input::AbstractArray{T, N}) where {T, N}
     return forward(softmax_layer, input)
 end
 
-function forward(layer::Softmax, input::AbstractArray{T, N}) where {T, N}
+function forward(layer::Softmax, input::TrackedArray{T, N}) where {T, N}
     tracked_args = (layer, input)
     output, pullback = rrule(forward, layer, primal(input))
     output_tracked = IntermediateTracked(output, tracked_args, pullback)

@@ -154,7 +154,7 @@ end
 Calculate the binary cross entropy loss (with optional reduction to a single loss value (mean or sum)) and it's derivative with respect to the prediction input.
 
 # Arguments
-- `prediction::AbstractArray{<: Real, N}`: the prediction of the model of shape (*), where * means any number of dimensions 
+- `prediction::AbstractArray{<: Real, N}`: the prediction of the model of shape (*), where * means any number of dimensions (the prediction is typically given by the output of a sigmoid activation function)
 - `target::AbstractArray{<: Real, N}`: the corresponding target values (should be between 0 and 1) of shape (*), must have the same shape as the prediction input 
 - `epsilon::Real=eps(eltype(prediction))`: term to avoid infinity
 - `reduction_method::Union{AbstractString, Nothing}="mean"`: can be `"mean"`, `"sum"` or `nothing`, specifies the reduction method which reduces the element-wise computed loss to a single value
@@ -179,7 +179,7 @@ L;\frac{\partial L}{\partial p_i} = \begin{cases}\frac{1}{n}\sum_{i=1}^{n} l_i; 
 # Examples
 ```julia-repl
 # define a model
-julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
+julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125, activation_function="softmax")])
 # create some random input data
 julia> input = rand(Float32, 1000, 32)
 # compute the output of the model

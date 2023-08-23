@@ -33,7 +33,6 @@ end
 
 Clean a container from backward pass information (e.g. computational graph).
 It is recommended to run this function on a model which should be saved to a file.
-```
 """
 function clean_model_from_backward_information! end
 

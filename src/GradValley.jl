@@ -115,8 +115,8 @@ julia> function get_element(index, partition)
             return image, target
        end
 # initialize the data loaders (with anonymous function which helps to easily distinguish between test- and train-partition)
-train_data_loader = DataLoader(index -> get_element(index, "train"), length(mnist_train), batch_size=32, shuffle=true)
-test_data_loader = DataLoader(index -> get_element(index, "test"), length(mnist_test), batch_size=32)
+julia> train_data_loader = DataLoader(index -> get_element(index, "train"), length(mnist_train), batch_size=32, shuffle=true)
+julia> test_data_loader = DataLoader(index -> get_element(index, "test"), length(mnist_test), batch_size=32)
 # in most cases NOT recommended: you can force the data loaders to load all the data at once into memory, depending on the dataset's size, this may take a while
 julia> # train_data = train_data_loader[begin:end] # turned off to save time
 julia> # test_data = test_data_loader[begin:end] # turned off to save time

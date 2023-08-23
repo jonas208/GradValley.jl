@@ -38,7 +38,7 @@ julia> input = rand(Float32, 28, 28, 1, 32)
 julia> output = forward(m, input)
 
 # indexing 
-julia> m[begin] # returns the feature_extractor_part_1 submodule (SequentialContainer)
+julia> m[begin] # returns the feature_extractor submodule (SequentialContainer)
 julia> m[end] # returns the softmax layer (Softmax)
 julia> m[begin:end-1] # returns the entire model except the softmax layer (a new SequentialContainer is initialized and returned) 
 
@@ -158,9 +158,9 @@ julia> output = forward(m, rand(Float32, 1000, 32))
 # use a loss function (with random data as target values) and save the derivative of the loss
 julia> loss, derivative_loss = mse_loss(output, rand(Float32, 125, 32)) # note that GradValley.Optimization.mse_loss must be imported
 # before the gradients are recalculated, the old gradients should always be reset first
-zero_gradients(m)
+julia> zero_gradients(m)
 # backpropagation 
-julia> backward(model, derivative_loss)
+julia> backward(m, derivative_loss)
 ```
 """
 function backward(sc::SequentialContainer, derivative_loss::Union{AbstractArray, Real})
@@ -353,9 +353,9 @@ julia> output = forward(m, input)
 # use a loss function (with random data as target values) and save the derivative of the loss
 julia> loss, derivative_loss = mse_loss(output, rand(Float32, 125, 32)) # note that GradValley.Optimization.mse_loss must be imported
 # before the gradients are (re)calculated, the old gradients should always be reset first
-zero_gradients(m)
+julia> zero_gradients(m)
 # backpropagation 
-julia> input_gradients = backward(model, derivative_loss) # input_gradients is a vector of length 1 because we only passed one input to the forward function
+julia> input_gradients = backward(m, derivative_loss) # input_gradients is a vector of length 1 because we only passed one input to the forward function
 julia> input_gradient = input_gradients[1] # input_gradient is the gradient w.r.t to the single input
 ```
 """

@@ -66,8 +66,8 @@ as the second argument. The output is returned.
 julia> layer = Conv(3, 6, (5, 5))
 julia> container = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # create some random input data
-julia> layer_input = rand(50, 50, 3, 32)
-julia> container_input = rand(1000, 32)
+julia> layer_input = rand(Float32, 50, 50, 3, 32)
+julia> container_input = rand(Float32, 1000, 32)
 # compute the output of the modules
 julia> layer_output = forward(layer, layer_input)
 julia> container_output = forward(container, container_input)

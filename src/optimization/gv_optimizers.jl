@@ -26,11 +26,11 @@ julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # initialize a SGD optimizer with learning-rate equal 0.1 and weight decay equal to 0.5 (otherwise default values)
 julia> optimizer = SGD(model, 0.1, weight_decay=0.5)
 # create some random input data
-julia> input = rand(1000, 32)
+julia> input = rand(Float32, 1000, 32)
 # compute the output of the model
 julia> output = forward(model, input)
 # generate some random target values 
-julia> target = rand(size(output)...)
+julia> target = rand(Float32, size(output)...)
 # compute the loss and it's derivative 
 julia> loss, loss_derivative = mse_loss(output, target)
 # computet the gradients 
@@ -94,11 +94,11 @@ julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # initialize a MSGD optimizer with learning-rate equal 0.1 and momentum equal to 0.75 (otherwise default values)
 julia> optimizer = Nesterov(model, 0.1, momentum=0.75)
 # create some random input data
-julia> input = rand(32, 1000)
+julia> input = rand(Float32, 32, 1000)
 # compute the output of the model
 julia> output = forward(model, input)
 # generate some random target values 
-julia> target = rand(size(output)...)
+julia> target = rand(Float32, size(output)...)
 # compute the loss and it's derivative 
 julia> loss, loss_derivative = mse_loss(output, target)
 # computet the gradients 
@@ -164,11 +164,11 @@ julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # initialize a Nesterov optimizer with learning-rate equal 0.1 and nesterov momentum equal to 0.8 (otherwise default values)
 julia> optimizer = Nesterov(model, 0.1, momentum=0.8)
 # create some random input data
-julia> input = rand(1000, 32)
+julia> input = rand(Float32, 1000, 32)
 # compute the output of the model
 julia> output = forward(model, input)
 # generate some random target values 
-julia> target = rand(size(output)...)
+julia> target = rand(Float32, size(output)...)
 # compute the loss and it's derivative 
 julia> loss, loss_derivative = mse_loss(output, target)
 # computet the gradients 
@@ -222,11 +222,11 @@ julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # initialize an optimizer (which optimizer specifically dosen't matter)
 julia> optimizer = SGD(model, 0.1)
 # create some random input data
-julia> input = rand(1000, 32)
+julia> input = rand(Float32, 1000, 32)
 # compute the output of the model
 julia> output = forward(model, input)
 # generate some random target values 
-julia> target = rand(size(output)...)
+julia> target = rand(Float32, size(output)...)
 # compute the loss and it's derivative 
 julia> loss, loss_derivative = mse_loss(output, target)
 # computet the gradients 
@@ -321,11 +321,11 @@ julia> model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
 # initialize a Adam optimizer with default arguments
 julia> optimizer = Adam(model)
 # create some random input data
-julia> input = rand(32, 1000)
+julia> input = rand(Float32, 32, 1000)
 # compute the output of the model
 julia> output = forward(model, input)
 # generate some random target values 
-julia> target = rand(size(output)...)
+julia> target = rand(Float32, size(output)...)
 # compute the loss and it's derivative 
 julia> loss, loss_derivative = mse_loss(output, target)
 # computet the gradients 
