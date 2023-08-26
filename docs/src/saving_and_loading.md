@@ -10,7 +10,7 @@ Then, you can save the model in the JLD2 file format with the [FileIO](https://g
 ```julia
 # import all packages 
 using GradValley
-using GradValley.Layer
+using GradValley.Layers
 using FileIO # the recommended package for saving/loading models
 # define a model as an example
 model = SequentialContainer([Fc(1000, 500), Fc(500, 250), Fc(250, 125)])
@@ -28,7 +28,7 @@ Loading the model is then normally done in another file. Note that all used pack
 ```julia
 # import all used packages 
 using GradValley
-using GradValley.Layer
+using GradValley.Layers
 using FileIO 
 # load the model from a file
 file_name = "my_example_model.jld2"
