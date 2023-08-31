@@ -18,12 +18,12 @@ The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on t
 # Installation
 Use Julias's package manager in the REPL:
 ```
-pkg> add https://github.com/jonas208/GradValley.jl
+pkg> add GradValley
 ```
 Or install directly in a julia script:
 ```julia
 import Pkg
-Pkg.add(url="https://github.com/jonas208/GradValley.jl")
+Pkg.add("GradValley")
 ```
 GradValley.jl is supported on Julia 1.7 and later. It is tested on Julia 1.7 and on the latest stable release.
 
