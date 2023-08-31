@@ -8,10 +8,10 @@
 [![codecov](https://codecov.io/github/jonas208/GradValley.jl/branch/main/graph/badge.svg?token=DJE8BZL8XR)](https://codecov.io/github/jonas208/GradValley.jl)
 
 GradValley.jl is a new lightweight package for Deep Learning written in 100% Julia. GradValley offers a high level interface for flexible model building and training. It is based on Julia’s standard array type and needs no additional tensor type. <br> 
-To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blob/main/README.md#installation) and [Getting Started](https://github.com/jonas208/GradValley.jl/blob/main/README.md#getting-started). After that, you could look at the [Tutorials and Examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) section in the [documentation](https://jonas208.github.io/GradValley.jl/). Or directly start using a [pre-trained model](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/), for example a [pre-trained ResNet](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/#ResNet18/34/50/101/152-(Image-Classification)). 
+To get started, see [Installation](https://github.com/jonas208/GradValley.jl/blob/main/README.md#installation) and [Getting Started](https://github.com/jonas208/GradValley.jl/blob/main/README.md#getting-started). After that, you could look at the [Tutorials and Examples](https://jonas208.github.io/GradValley.jl/dev/tutorials_and_examples/) section in the [documentation](https://jonas208.github.io/GradValley.jl/). Or directly start using a [pre-trained model](https://jonas208.github.io/GradValley.jl/dev/(pre-trained)_models/), for example a [pre-trained ResNet](https://jonas208.github.io/GradValley.jl/dev/(pre-trained)_models/#ResNet18/34/50/101/152-(Image-Classification)). 
 
 The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ 
-<br> Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be found there as well.
+<br> Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/dev/tutorials_and_examples/) can be found there as well.
 
 #### Note: This software package and its documentation are in an early stage of development and are therefore still a beta version. Some features which may be missing at the moment will be added over time.
 
@@ -28,7 +28,7 @@ Pkg.add("GradValley")
 GradValley.jl is supported on Julia 1.7 and later. It is tested on Julia 1.7 and on the latest stable release.
 
 # Getting Started
-This example shows the basic workflow on model building (using [containers](https://jonas208.github.io/GradValley.jl/reference/#Containers)) and how to use loss functions and optimizers to train the model:
+This example shows the basic workflow on model building (using [containers](https://jonas208.github.io/GradValley.jl/dev/reference/#Containers)) and how to use loss functions and optimizers to train the model:
 ```julia
 using GradValley
 using GradValley.Layers # The "Layers" module provides all the building blocks for creating a model.
@@ -72,12 +72,12 @@ step!(optimizer) # making a optimization step with the calculated gradients and 
 ```
 
 # Why GradValley.jl?
-See the [Why GradValley.il](https://jonas208.github.io/GradValley.jl/#Why-GradValley.jl) paragraph on the [start page of the documentation](https://jonas208.github.io/GradValley.jl/).
+See the [Why GradValley.il](https://jonas208.github.io/GradValley.jl/dev/#Why-GradValley.jl) paragraph on the [start page of the documentation](https://jonas208.github.io/GradValley.jl/).
 
 # Documentation, Tutorials and Examples, etc.
 - The [documentation](https://jonas208.github.io/GradValley.jl/) can be found on the GitHub Pages site of this repository: https://jonas208.github.io/GradValley.jl/ <br>
-- Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/tutorials_and_examples/) can be also found there.
-- Information about [pre-trained models](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/) can be found there too.
+- Further [tutorials and examples](https://jonas208.github.io/GradValley.jl/dev/tutorials_and_examples/) can be also found there.
+- Information about [pre-trained models](https://jonas208.github.io/GradValley.jl/dev/(pre-trained)_models/) can be found there too.
 
 # Questions and Discussions
 If you have any questions about this software package, please let me know in the [discussion](https://github.com/jonas208/GradValley.jl/discussions) section of this repository.
