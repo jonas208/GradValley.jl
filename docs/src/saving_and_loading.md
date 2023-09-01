@@ -1,7 +1,7 @@
 # Saving and Loading
 
 There doesn't exist *the one* right way to save and load models. However, at the moment, the [JLD2](https://github.com/JuliaIO/JLD2.jl) package is recommended.
-In the MNIST-Tutorial however, the [BSON](https://github.com/JuliaIO/BSON.jl) package was used. But this package has problems with very large files, for example with large [ResNets](https://arxiv.org/pdf/1512.03385.pdf) (e.g. the [pre-trained ResNets](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/) in the [(Pre-Trained) Models](@ref) section).
+In the MNIST-Tutorial however, the [BSON](https://github.com/JuliaIO/BSON.jl) package was used. But this package has problems with very large files, for example with large [ResNets](https://arxiv.org/pdf/1512.03385.pdf) (e.g. the [pre-trained ResNets](https://jonas208.github.io/GradValley.jl/dev/(pre-trained)_models/) in the [(Pre-Trained) Models](@ref) section).
 
 Because GradValley saves some information for the backward pass (e.g. the during forward pass recorded computational graph) directly in the containers, it is highly recommended to run [`clean_model_from_backward_information!`](@ref) on the model first. Otherwise, the files may get larger than they would have to.
 If the model was moved to the GPU, it's also heavily recommend to move the model to the CPU before saving it to a file. To move the model back to the CPU, use [`module_to_eltype_device!`](@ref).

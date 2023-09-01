@@ -267,7 +267,7 @@ On my Ryzen 9 5900X CPU (using all 24 threads, slightly overclocked), one epoch 
 
 The same code can be also found [here](https://github.com/jonas208/GradValley.jl/blob/main/examples/ResNet.jl).
 
-This example shows the ResNet implementation used by the [pre-trained ResNets](https://jonas208.github.io/GradValley.jl/(pre-trained)_models/#ResNet18/34/50/101/152-(Image-Classification)).
+This example shows the ResNet implementation used by the [pre-trained ResNets](https://jonas208.github.io/GradValley.jl/dev/(pre-trained)_models/#ResNet18/34/50/101/152-(Image-Classification)).
 The function `ResBlock` generates a standard residual block (with one residual/skipped connection) with optional downsampling. 
 On the other hand, the function `ResBottelneckBlock` generates a bottleneck residual block (a variant of the residual block that utilises 1x1 convolutions to create a bottleneck) with optional downsampling.
 The residual connections can be easily implemented using the [`GraphContainer`](@ref). [`GraphContainer`](@ref) allows differentiation for any computational graphs (not only sequential graphs for which the [`SequentialContainer`](@ref) is intended).

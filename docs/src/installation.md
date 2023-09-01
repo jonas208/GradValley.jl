@@ -2,11 +2,11 @@
 
 The package can be installed with the Julia package manager. From the Julia REPL, type ```]``` to enter the Pkg REPL mode and run:
 ```
-pkg> add https://github.com/jonas208/GradValley.jl
+pkg> add GradValley
 ```
 Or, equivalently, via the Pkg API:
 ```julia
-julia> import Pkg; Pkg.add(url="https://github.com/jonas208/GradValley.jl")
+julia> import Pkg; Pkg.add("GradValley")
 ```
 
 ## Used Dependencies
