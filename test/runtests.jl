@@ -83,9 +83,9 @@ input_gradient_avx = zeros(dtype, size(input)...)
 input_gradient_avx = ∇conv_data!_avx(input_gradient_avx, output_gradient, weight, cdims)
 input_gradient_avx = @time ∇conv_data!_avx(input_gradient_avx, output_gradient, weight, cdims)
 
+@show sum(input_gradient_noavx)
+@show sum(input_gradient_avx)
 @info isapprox(input_gradient_noavx, input_gradient_avx)
 @testset "conv bwd minimal" begin
     @test isapprox(input_gradient_noavx, input_gradient_avx)
 end
-@show sum(input_gradient_noavx)
-@show sum(input_gradient_avx)
