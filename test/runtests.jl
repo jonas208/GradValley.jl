@@ -1,15 +1,18 @@
 using Test
 
-using NNlib, LoopVectorization, CpuId
+using NNlib, LoopVectorization, Static, CpuId
+# using LayoutPointers: zero_offsets
+# using StaticArrayInterface: static_size
+using OffsetArrays
 
 function ∇conv_data!_avx(input_gradient::Array{T,4}, output_gradient::Array{T,4}, weight::Array{T,4}, cdims::ConvDims; kw...) where {T<:Real}
 
     NNlib.check_dims(size(input_gradient), size(weight), size(output_gradient), cdims)
     
     # storing all the necessary shapes
-    output_width, output_height, out_channels, current_batch_size = size(output_gradient)
+    output_width, output_height, out_channels, batch_size = size(output_gradient)
     weight_width, weight_height, in_channels_weight, out_channels = size(weight)
-    input_width, input_height, in_channels, current_batch_size = size(input_gradient)
+    input_width, input_height, in_channels, batch_size = size(input_gradient)
 
     if cdims.padding != (0, 0, 0, 0) || cdims.groupcount != 1 || cdims.stride != (1, 1) || cdims.dilation != (1, 1)
         throw(ArgumentError("this test function only supports basic conv (or crosscor) bwd with pad=0, stride=1, dilation=1, groups=1"))
@@ -23,13 +26,44 @@ function ∇conv_data!_avx(input_gradient::Array{T,4}, output_gradient::Array{T,
     # because in the actual computation section, values are added, it's saver to reset the given input_gradient first
     input_gradient .= zero(T)
 
-    for index_batch in 1:current_batch_size # Threads.@threads 
+    #=
+    for index_batch in 1:batch_size # Threads.@threads 
         @turbo for out_channel in 1:out_channels, y_out in 1:output_height, x_out in 1:output_width
             for in_channel in 1:in_channels, y_w in 1:weight_height, x_w in 1:weight_width
                 input_gradient[x_out + x_w - 1, y_out + y_w - 1, in_channel, index_batch] += weight[x_w, y_w, in_channel, out_channel] * output_gradient[x_out, y_out, out_channel, index_batch]
             end
         end
     end
+    =#
+
+    @inline static_size(x::AbstractArray{T, N}) where {T, N} = static.(size(x))
+    
+    output_gradient = OffsetArray(output_gradient, OffsetArrays.Origin(0, 0, 0, 0))
+    input_gradient = OffsetArray(input_gradient, OffsetArrays.Origin(0, 0, 0, 0))
+    weight = OffsetArray(weight, OffsetArrays.Origin(0, 0, 0, 0))
+
+    input_width, input_height, in_channels, batch_size = static_size(input_gradient)
+    weight_width, weight_height, in_channels_weight, K3 = static_size(weight)
+
+    J0 = input_width - weight_width + static(1)
+    J1 = input_height - weight_height + static(1)
+
+    for index_batch in 0:batch_size-1
+        @turbo unroll = (2, 1) for j0 in 0:input_width-1, j1 in 0:input_height-1, in_channel in 0:in_channels-1
+
+            s = zero(T)
+            for x_w in 0:weight_width-1, y_w in 0:weight_height-1, out_channel in 0:K3-1
+                ib0 = (j0 - x_w >= 0) & (j0 - x_w < J0)
+                ib1 = (j1 - y_w >= 0) & (j1 - y_w < J1)
+                oa = (ib0 & ib1) ? output_gradient[j0-x_w, j1-y_w, out_channel, index_batch] : zero(T)
+                s += weight[x_w, y_w, in_channel, out_channel] * oa
+            end
+            input_gradient[j0, j1, in_channel, index_batch] = s
+
+        end
+    end
+
+    input_gradient = input_gradient.parent
 
     return input_gradient
 end
@@ -39,9 +73,9 @@ function ∇conv_data!_noavx(input_gradient::Array{T,4}, output_gradient::Array{
     NNlib.check_dims(size(input_gradient), size(weight), size(output_gradient), cdims)
     
     # storing all the necessary shapes
-    output_width, output_height, out_channels, current_batch_size = size(output_gradient)
+    output_width, output_height, out_channels, batch_size = size(output_gradient)
     weight_width, weight_height, in_channels_weight, out_channels = size(weight)
-    input_width, input_height, in_channels, current_batch_size = size(input_gradient)
+    input_width, input_height, in_channels, batch_size = size(input_gradient)
 
     if cdims.padding != (0, 0, 0, 0) || cdims.groupcount != 1 || cdims.stride != (1, 1) || cdims.dilation != (1, 1)
         throw(ArgumentError("this test function only supports basic conv (or crosscor) bwd with pad=0, stride=1, dilation=1, groups=1"))
@@ -55,7 +89,7 @@ function ∇conv_data!_noavx(input_gradient::Array{T,4}, output_gradient::Array{
     # because in the actual computation section, values are added, it's saver to reset the given input_gradient first
     input_gradient .= zero(T)
 
-    for index_batch in 1:current_batch_size # NO @threads here
+    for index_batch in 1:batch_size # NO @threads here
         for out_channel in 1:out_channels, y_out in 1:output_height, x_out in 1:output_width # NO @turbo here!
             for in_channel in 1:in_channels, y_w in 1:weight_height, x_w in 1:weight_width
                 input_gradient[x_out + x_w - 1, y_out + y_w - 1, in_channel, index_batch] += weight[x_w, y_w, in_channel, out_channel] * output_gradient[x_out, y_out, out_channel, index_batch]
