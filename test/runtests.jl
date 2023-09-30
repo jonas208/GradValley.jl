@@ -27,7 +27,7 @@ function ∇conv_data!_avx(input_gradient::Array{T,4}, output_gradient::Array{T,
     input_gradient .= zero(T)
 
     #=
-    for index_batch in 1:batch_size # Threads.@threads 
+    Threads.@threads for index_batch in 1:batch_size # 
         @turbo for out_channel in 1:out_channels, y_out in 1:output_height, x_out in 1:output_width
             for in_channel in 1:in_channels, y_w in 1:weight_height, x_w in 1:weight_width
                 input_gradient[x_out + x_w - 1, y_out + y_w - 1, in_channel, index_batch] += weight[x_w, y_w, in_channel, out_channel] * output_gradient[x_out, y_out, out_channel, index_batch]
@@ -43,22 +43,23 @@ function ∇conv_data!_avx(input_gradient::Array{T,4}, output_gradient::Array{T,
     weight = OffsetArray(weight, OffsetArrays.Origin(0, 0, 0, 0))
 
     input_width, input_height, in_channels, batch_size = static_size(input_gradient)
-    weight_width, weight_height, in_channels_weight, K3 = static_size(weight)
+    weight_width, weight_height, in_channels_weight, out_channels = static_size(weight)
 
     J0 = input_width - weight_width + static(1)
     J1 = input_height - weight_height + static(1)
 
-    for index_batch in 0:batch_size-1
-        @turbo unroll = (2, 1) for j0 in 0:input_width-1, j1 in 0:input_height-1, in_channel in 0:in_channels-1
+    @tturbo for index_batch in 0:batch_size-1
+        for x_in in 0:input_width-1, y_in in 0:input_height-1, in_channel in 0:in_channels-1 # @tturbo unroll = (2, 1) 
 
-            s = zero(T)
-            for x_w in 0:weight_width-1, y_w in 0:weight_height-1, out_channel in 0:K3-1
-                ib0 = (j0 - x_w >= 0) & (j0 - x_w < J0)
-                ib1 = (j1 - y_w >= 0) & (j1 - y_w < J1)
-                oa = (ib0 & ib1) ? output_gradient[j0-x_w, j1-y_w, out_channel, index_batch] : zero(T)
-                s += weight[x_w, y_w, in_channel, out_channel] * oa
+            value = zero(T)
+            for x_w in 0:weight_width-1, y_w in 0:weight_height-1, out_channel in 0:out_channels-1
+                ib0 = (x_in - x_w >= 0) & (x_in - x_w < J0)
+                ib1 = (y_in - y_w >= 0) & (y_in - y_w < J1)
+                output_gradient_value = (ib0 & ib1) ? output_gradient[x_in-x_w, y_in-y_w, out_channel, index_batch] : zero(T)
+                value += weight[x_w, y_w, in_channel, out_channel] * output_gradient_value
+                # value += (ib0 & ib1) ? output_gradient[x_in-x_w, y_in-y_w, out_channel, index_batch] * weight[x_w, y_w, in_channel, out_channel] : zero(T)
             end
-            input_gradient[j0, j1, in_channel, index_batch] = s
+            input_gradient[x_in, y_in, in_channel, index_batch] = value
 
         end
     end
@@ -103,7 +104,7 @@ end
 println(cpuinfo())
 
 dtype = Float32 # Float64
-batch_size = 5
+batch_size = 32
 input = rand(dtype, 50, 50, 3, batch_size)
 weight = rand(dtype, 5, 5, 3, 9)
 cdims = NNlib.DenseConvDims(size(input), size(weight), stride=(1, 1), padding=(0, 0), dilation=(1, 1), groups=1)
