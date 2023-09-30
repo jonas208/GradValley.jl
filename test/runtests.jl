@@ -1,53 +1,126 @@
-# using source for testing
-#=
-include("C:/Users/joerg/Documents/pythonscripts/Neuronale Netze/NNJL/GradValley 5.1/GradValley/src/GradValley.jl")
-using .GradValley, .GradValley.Functional, .GradValley.Layers, .GradValley.Optimization
-using .GradValley.Functional: convolution2d, convolution2d_data_backward, convolution2d_filter_backward, convolution2d_bias_backward
-using .GradValley.Functional: deconvolution2d, deconvolution2d_data_backward, deconvolution2d_filter_backward, deconvolution2d_bias_backward
-using .GradValley.Functional: maximum_pooling2d, maximum_pooling2d_backward, average_pooling2d, average_pooling2d_backward
-using .GradValley.Functional: adaptive_average_pooling2d, adaptive_average_pooling2d_backward
-using .GradValley.Functional: adaptive_maximum_pooling2d, adaptive_maximum_pooling2d_backward
-using .GradValley.Functional: batch_norm2d_forward, batch_norm2d_data_backward, batch_norm2d_weight_backward, batch_norm2d_backward
-using .GradValley.Functional: reshape_forward, reshape_backward
-using .GradValley.Functional: fc_forward, fc_backward
-using .GradValley.Functional: softmax_forward, softmax_backward
-=#
-# using installed package for testing
-using GradValley, GradValley.Functional, GradValley.Layers, GradValley.Optimization
-using GradValley.Functional: convolution2d, convolution2d_data_backward, convolution2d_filter_backward, convolution2d_bias_backward
-using GradValley.Functional: deconvolution2d, deconvolution2d_data_backward, deconvolution2d_filter_backward, deconvolution2d_bias_backward
-using GradValley.Functional: maximum_pooling2d, maximum_pooling2d_backward, average_pooling2d, average_pooling2d_backward
-using GradValley.Functional: adaptive_average_pooling2d, adaptive_average_pooling2d_backward
-using GradValley.Functional: adaptive_maximum_pooling2d, adaptive_maximum_pooling2d_backward
-using GradValley.Functional: batch_norm2d_forward, batch_norm2d_data_backward, batch_norm2d_weight_backward, batch_norm2d_backward
-using GradValley.Functional: reshape_forward, reshape_backward
-using GradValley.Functional: fc_forward, fc_backward
-using GradValley.Functional: softmax_forward, softmax_backward
-# additional dependencies
 using Test
-using CUDA
 
-# check if cuda is available
-use_cuda = CUDA.functional()
+using NNlib, LoopVectorization, Static, CpuId
+# using LayoutPointers: zero_offsets
+# using StaticArrayInterface: static_size
+using OffsetArrays
 
-# the backend cpu functions in src/functional are tested against cuda to ensure mutual correctness
-if use_cuda
-    println("Test Convolution"); include("gv_convolution_cuda_test.jl")
-    println("Test Deconvolution"); include("gv_deconvolution_cuda_test.jl")
-    println("Test Pooling"); include("gv_pooling_cuda_test.jl")
-    println("Test Adaptive Pooling"); include("gv_adaptive_pooling_cuda_test.jl")
-    println("Test Batch Normalization"); include("gv_batch_normalization_cuda_test.jl")
-    println("Test Reshape/Flatten"); include("gv_reshape_flatten_cuda_test.jl")
-    println("Test Fully Connected"); include("gv_fully_connected_cuda_test.jl")
-    println("Test Activation Functions"); include("gv_activation_functions_cuda_test.jl")
+function ∇conv_data!_avx(input_gradient::Array{T,4}, output_gradient::Array{T,4}, weight::Array{T,4}, cdims::ConvDims; kw...) where {T<:Real}
+
+    NNlib.check_dims(size(input_gradient), size(weight), size(output_gradient), cdims)
+    
+    # storing all the necessary shapes
+    output_width, output_height, out_channels, batch_size = size(output_gradient)
+    weight_width, weight_height, in_channels_weight, out_channels = size(weight)
+    input_width, input_height, in_channels, batch_size = size(input_gradient)
+
+    if cdims.padding != (0, 0, 0, 0) || cdims.groupcount != 1 || cdims.stride != (1, 1) || cdims.dilation != (1, 1)
+        throw(ArgumentError("this test function only supports basic conv (or crosscor) bwd with pad=0, stride=1, dilation=1, groups=1"))
+    end
+
+    # it's necessary to flip the kernel if real convolution is performed (flipkernel=false)
+    if !NNlib.flipkernel(cdims)
+        weight = reverse(weight, dims=(1, 2))
+    end
+
+    # because in the actual computation section, values are added, it's saver to reset the given input_gradient first
+    input_gradient .= zero(T)
+
+    #=
+    Threads.@threads for index_batch in 1:batch_size # 
+        @turbo for out_channel in 1:out_channels, y_out in 1:output_height, x_out in 1:output_width
+            for in_channel in 1:in_channels, y_w in 1:weight_height, x_w in 1:weight_width
+                input_gradient[x_out + x_w - 1, y_out + y_w - 1, in_channel, index_batch] += weight[x_w, y_w, in_channel, out_channel] * output_gradient[x_out, y_out, out_channel, index_batch]
+            end
+        end
+    end
+    =#
+
+    @inline static_size(x::AbstractArray{T, N}) where {T, N} = static.(size(x))
+    
+    output_gradient = OffsetArray(output_gradient, OffsetArrays.Origin(0, 0, 0, 0))
+    input_gradient = OffsetArray(input_gradient, OffsetArrays.Origin(0, 0, 0, 0))
+    weight = OffsetArray(weight, OffsetArrays.Origin(0, 0, 0, 0))
+
+    input_width, input_height, in_channels, batch_size = static_size(input_gradient)
+    weight_width, weight_height, in_channels_weight, out_channels = static_size(weight)
+
+    J0 = input_width - weight_width + static(1)
+    J1 = input_height - weight_height + static(1)
+
+    @tturbo for index_batch in 0:batch_size-1
+        for x_in in 0:input_width-1, y_in in 0:input_height-1, in_channel in 0:in_channels-1 # @tturbo unroll = (2, 1) 
+
+            value = zero(T)
+            for x_w in 0:weight_width-1, y_w in 0:weight_height-1, out_channel in 0:out_channels-1
+                ib0 = (x_in - x_w >= 0) & (x_in - x_w < J0)
+                ib1 = (y_in - y_w >= 0) & (y_in - y_w < J1)
+                output_gradient_value = (ib0 & ib1) ? output_gradient[x_in-x_w, y_in-y_w, out_channel, index_batch] : zero(T)
+                value += weight[x_w, y_w, in_channel, out_channel] * output_gradient_value
+                # value += (ib0 & ib1) ? output_gradient[x_in-x_w, y_in-y_w, out_channel, index_batch] * weight[x_w, y_w, in_channel, out_channel] : zero(T)
+            end
+            input_gradient[x_in, y_in, in_channel, index_batch] = value
+
+        end
+    end
+
+    input_gradient = input_gradient.parent
+
+    return input_gradient
 end
 
-# test the DataLoader (only works on the cpu currently)
-include("gv_data_loader_test.jl")
+function ∇conv_data!_noavx(input_gradient::Array{T,4}, output_gradient::Array{T,4}, weight::Array{T,4}, cdims::ConvDims; kw...) where {T<:Real}
 
-# test weight and layer initialization, computational graph creation and automatic differentiation tools (e.g. backward pass) in a combined example on the cpu
-println("Combined Test on the CPU"); include("combined_cpu_test.jl")
-# do the same on the gpu
-if use_cuda
-    println("Combined Test on the GPU"); include("combined_gpu_test.jl")
+    NNlib.check_dims(size(input_gradient), size(weight), size(output_gradient), cdims)
+    
+    # storing all the necessary shapes
+    output_width, output_height, out_channels, batch_size = size(output_gradient)
+    weight_width, weight_height, in_channels_weight, out_channels = size(weight)
+    input_width, input_height, in_channels, batch_size = size(input_gradient)
+
+    if cdims.padding != (0, 0, 0, 0) || cdims.groupcount != 1 || cdims.stride != (1, 1) || cdims.dilation != (1, 1)
+        throw(ArgumentError("this test function only supports basic conv (or crosscor) bwd with pad=0, stride=1, dilation=1, groups=1"))
+    end
+
+    # it's necessary to flip the kernel if real convolution is performed (flipkernel=false)
+    if !NNlib.flipkernel(cdims)
+        weight = reverse(weight, dims=(1, 2))
+    end
+
+    # because in the actual computation section, values are added, it's saver to reset the given input_gradient first
+    input_gradient .= zero(T)
+
+    for index_batch in 1:batch_size # NO @threads here
+        for out_channel in 1:out_channels, y_out in 1:output_height, x_out in 1:output_width # NO @turbo here!
+            for in_channel in 1:in_channels, y_w in 1:weight_height, x_w in 1:weight_width
+                input_gradient[x_out + x_w - 1, y_out + y_w - 1, in_channel, index_batch] += weight[x_w, y_w, in_channel, out_channel] * output_gradient[x_out, y_out, out_channel, index_batch]
+            end
+        end
+    end
+
+    return input_gradient
+end
+
+println(cpuinfo())
+
+dtype = Float32 # Float64
+batch_size = 16 # 32
+input = rand(dtype, 50, 50, 3, batch_size)
+weight = rand(dtype, 5, 5, 3, 9)
+cdims = NNlib.DenseConvDims(size(input), size(weight), stride=(1, 1), padding=(0, 0), dilation=(1, 1), groups=1)
+output_gradient = rand(dtype, NNlib.output_size(cdims)..., 9, batch_size)
+
+input_gradient_noavx = zeros(dtype, size(input)...)
+input_gradient_noavx = ∇conv_data!_noavx(input_gradient_noavx, output_gradient, weight, cdims)
+input_gradient_noavx = @time ∇conv_data!_noavx(input_gradient_noavx, output_gradient, weight, cdims)
+
+input_gradient_avx = zeros(dtype, size(input)...)
+input_gradient_avx = ∇conv_data!_avx(input_gradient_avx, output_gradient, weight, cdims)
+input_gradient_avx = @time ∇conv_data!_avx(input_gradient_avx, output_gradient, weight, cdims)
+
+@show sum(input_gradient_noavx)
+@show sum(input_gradient_avx)
+@info isapprox(input_gradient_noavx, input_gradient_avx)
+@testset "conv bwd minimal" begin
+    @test isapprox(input_gradient_noavx, input_gradient_avx)
 end
