@@ -104,7 +104,7 @@ end
 println(cpuinfo())
 
 dtype = Float32 # Float64
-batch_size = 32
+batch_size = 16 # 32
 input = rand(dtype, 50, 50, 3, batch_size)
 weight = rand(dtype, 5, 5, 3, 9)
 cdims = NNlib.DenseConvDims(size(input), size(weight), stride=(1, 1), padding=(0, 0), dilation=(1, 1), groups=1)
