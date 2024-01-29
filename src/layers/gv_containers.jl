@@ -2,7 +2,7 @@
 @doc raw"""
     SequentialContainer(layer_stack::Vector{<: Any})
 
-A sequential container (recommended method for building models). A SequtialContainer can take a vector of layers or other containers (submodules).
+A sequential container (recommended method for building models). A SequetialContainer can take a vector of layers or other containers (submodules).
 While forward-pass, the given inputs are *sequentially* propagated through every layer (or submodule) and the output will be returned.
 The execution order during forward pass is of course the same as the order in the vector containing the layers or submodules.
 
