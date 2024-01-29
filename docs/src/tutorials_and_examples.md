@@ -80,7 +80,7 @@ test_data = test_data_loader[begin:end]
 
 ### Building the neuronal network aka. the model
 
-The recommend way to build feed forward models is to use the GradValley.Layers.SequentialContainer struct. A SequtialContainer can take an array of layers or other containers (sub-models).
+The recommend way to build feed forward models is to use the GradValley.Layers.SequentialContainer struct. A SequetialContainer can take an array of layers or other containers (sub-models).
 While forward-pass, the given inputs are *sequentially* propagated through every layer (or sub-model) and the output will be returned. For more details, see [Reference](@ref).
 The LeNet5 model is one of the earliest convolutional neuronal networks (CNNs) reaching approximately 99% accuracy on the MNIST-dataset.
 The LeNet5 is built of two main parts, the feature extractor and the classifier. So it would be a good idea to clarify that in the code:
